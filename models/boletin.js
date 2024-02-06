@@ -3,7 +3,7 @@ const mongooseUniqueValidator = require('mongoose-unique-validator');
 
 const BoletinSchema = new Schema(
   {
-    fecha: {
+    fechaBoletin: {
       type: String,
       required: [true, "La fecha es requerida"],
     },
@@ -17,7 +17,7 @@ const BoletinSchema = new Schema(
       type: Boolean,
       default: true,
     },
-    numero: { 
+    numeroBoletin: { 
       type: Number ,
       unique: true,
     },
@@ -25,20 +25,24 @@ const BoletinSchema = new Schema(
       type: String,
       trim: true,
     },
-    nroDecreto: {
+    archivoBoletin:{
+      type: Buffer,
+      ref: "archivoBoletin",
+    },
+    nroDecreto: [{
       type: Schema.Types.ObjectId,
       ref: "Decreto",
-    },
-    nroOrdenanza: {
+    }],
+    nroOrdenanza: [{
       type: Schema.Types.ObjectId,
       ref: "Ordenanza",
       // required: [true, "El numero de ordenanza es requerido"],
-    },
-    nroResolucion: {
+    }],
+    nroResolucion:[ {
       type: Schema.Types.ObjectId,
       ref: "Resolucion",
       // required: [true, "El numero de resolucion es requerido"],
-    },
+    }],
     // norma: {
     //   type: Schema.Types.ObjectId,
     //   ref: "Norma",
@@ -60,9 +64,9 @@ const BoletinSchema = new Schema(
   }
 );
 
-ReporteSchema.plugin(mongooseUniqueValidator,{
+BoletinSchema.plugin(mongooseUniqueValidator,{
     message: '{PATH} debe ser único'
     })  
 
 
-module.exports = model('Reporte',BoletinSchema);
+module.exports = model('boletin',BoletinSchema);
