@@ -3,22 +3,24 @@ const verifyRole = require("../middlewares/verifyRole");
 const auth = require("../middlewares/auth");
 const { check } = require("express-validator");
 const validateFields = require("../middlewares/validateFields");
-const {agregarBoletin } =require("../controllers/boletinesControllers")
+const {
+  agregarBoletin,
+  getBoletin,
+} = require("../controllers/boletinesControllers");
 // const { agregarReporte, getReportes, actualizarReporte, borrarReporte, getReportesPodio, getReportesPaginacion, getReportesHistorico, getMesYTotalDeReportesVisualizadorYSupervisor, getTopTresDespachadosPorMes } = require("../controllers/boletinesControllers");
 const { funcionMulter } = require("../middlewares/multerStorage");
 // const verifyRoleEstadistica = require("../middlewares/verifyRolEstadistica");
 
 const router = Router();
 
-
 // const boletin = require("../models/boletin");
-//  router.get("/",async (req, res) =>{               
+//  router.get("/",async (req, res) =>{
 //   const boletines = await boletin.find({})
 //   res.json(boletines)
 //  });
 
-router.post("/alta",agregarBoletin)
-
+router.post("/alta", agregarBoletin);
+router.get("/listar", getBoletin);
 // router.get("/listarHistorico", auth,verifyRoleEstadistica,getReportesHistorico);
 // router.get("/listarConPaginacion", auth,verifyRoleEstadistica,getReportesPaginacion);
 // router.get("/podio/:turno?", auth,getReportesPodio);
@@ -40,7 +42,7 @@ router.post("/alta",agregarBoletin)
 //     check("usuario", "Debe ser un id de mongodb").not().isEmpty().isMongoId(),
 //     validateFields,
 //   ],
-  
+
 //     agregarReporte
 //   )
 
