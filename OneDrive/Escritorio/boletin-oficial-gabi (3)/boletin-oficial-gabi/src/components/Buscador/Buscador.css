@@ -1,0 +1,110 @@
+
+.buscador {
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    height: auto;
+    width: 98%;
+    padding-bottom: 20px !important;
+    padding: 0;
+    border-radius: 20px;
+    /* background-color: #ffff; */
+    background-color: #0066ff;
+    box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+
+}
+
+.tituloBuscador {
+    color: #fff;
+    margin-left: 50px;
+    padding-top: 40px;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+.inputCont {
+    display: flex;
+    flex-direction: row !important;
+    align-items: center;
+}
+
+.MuiOutlinedInput-notchedOutline {
+    border-color: #ffff !important;
+}
+
+.MuiInputLabel-root.Mui-focused,
+.MuiInputLabel-root,
+.MuiOutlinedInput-input {
+    color: #ffff !important
+}
+
+.btnBuscador,
+.btnBuscadorAvanzada {
+    height: 50px;
+    background-color: #2eb1ff !important;
+    width: fit-content !important;
+}
+
+.btnBuscadorAvanzada {
+    width: 200px !important;
+}
+
+.css-3dzjca-MuiPaper-root-MuiPopover-paper-MuiMenu-paper {
+    background-color: #0066ff !important;
+    color: #fff !important;
+    width: 20% !important;
+}
+
+.css-sghohy-MuiButtonBase-root-MuiButton-root:hover {
+    background-color: rgb(43, 169, 241) !important;
+}
+
+@media (max-width: 730px) {
+    .textMuni {
+        flex-direction: column;
+    }
+
+    .textMuni h1 {
+        margin: 0 !important;
+
+    }
+
+    .navCont {
+        height: auto;
+        padding-bottom: 20px;
+
+    }
+
+    .buscador {
+        height: auto;
+        align-items: center !important;
+    }
+
+    .inputCont {
+        flex-direction: column !important;
+        padding-bottom: 15px;
+    }
+
+    .css-3dzjca-MuiPaper-root-MuiPopover-paper-MuiMenu-paper {
+        width: fit-content !important;
+
+    }
+
+
+}
+
+@media (max-width: 500px) {
+
+    .logoNav {
+        height: 90px !important;
+    }
+
+    .contLogo h4 {
+        font-size: 90% !important;
+        height: fit-content;
+    }
+
+    .contLogo h1 {
+        font-size: 150% !important;
+    }
+}

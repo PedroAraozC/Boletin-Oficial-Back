@@ -1,0 +1,124 @@
+.contBoxAltaBoletines {
+    background-color: #0066ff;
+    border-radius: 25px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    align-items: center;
+    box-Shadow: 0 5px 8px rgba(0, 0, 0, 0.5)
+}
+
+.contAltaBoletines {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+}
+
+/* INPUTFILE*/
+.css-1x51dt5-MuiInputBase-input-MuiInput-input {
+    height: 280px !important;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    width: 50%;
+    margin-bottom: 30px;
+
+}
+
+.nroBoletin {
+    display: flex;
+    align-items: start;
+    width: 100;
+    color: #ffffff
+}
+
+.contRango {
+    width: 100%;
+
+    margin-top: 10px;
+}
+
+.contRango div {
+    width: 100%;
+
+    display: flex;
+    flex-direction: row;
+}
+
+.contRango {
+    color: #ffffff;
+}
+
+.contInputFileBoletin {
+    display: flex;
+    flex-direction: column;
+}
+
+.inputAltaBoletin,
+.inputFileAltaBoletin {
+    width: 100% !important;
+    align-content: center !important;
+}
+
+.textAreaBoletines {
+    height: 100vh;
+    width: 80%;
+    border-radius: 25px;
+    padding-top: 7px;
+    padding-left: 10px;
+    margin-bottom: 30px;
+    resize: none
+}
+
+
+::-webkit-file-upload-button {
+    cursor: pointer !important;
+}
+
+.inputFileAltaBoletin input {
+    opacity: 0;
+    cursor: pointer !important;
+
+    position: absolute;
+}
+
+.fileNameDisplay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer !important;
+    height: 100%;
+    width: 100%;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.288);
+}
+
+@media (max-width: 767px) {
+    .contAltaBoletines {
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .formGroup {
+        width: 100%;
+        margin-bottom: auto;
+    }
+
+    .css-1x51dt5-MuiInputBase-input-MuiInput-input {
+        margin-bottom: 2px !important;
+        height: 25vh !important;
+    }
+
+    .contInputFileBoletin {
+        width: 80vw !important;
+        height: 40vh !important;
+    }
+
+}
