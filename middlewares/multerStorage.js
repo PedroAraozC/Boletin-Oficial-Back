@@ -1,18 +1,23 @@
-// const express = require('express');
-// const router = express.Router();
-const multer = require('multer');
-// const { agregarBoletin } = require('../controllers/boletinController');
+const multer = require("multer");
+const fs = require('fs');
 
-// Configuración de multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Ruta donde se guardarán los archivos
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname); // Nombre de archivo único
-  }
-});
-const upload = multer({ storage: storage });
+const funcionMulter = () => {
+  const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      const uploadPath = `./archivosNoticia/`; // Ruta de la carpeta de destino
+      fs.mkdirSync(uploadPath, { recursive: true }); // Crear carpeta si no existe
+      cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+      cb(null, Date.now() + "-" + file.originalname);
+    },
+  });
 
+  const upload = multer({ storage: storage });
 
-module.exports = upload;
+  return upload.single("archivoBoletin"); // Cambio aquí para aceptar un solo archivo
+};
+
+module.exports = {
+  funcionMulter,
+};

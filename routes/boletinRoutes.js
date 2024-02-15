@@ -7,7 +7,7 @@ const {
 
 const router = Router();
 
-router.post("/alta", multerStorage.single('archivoBoletin'), agregarBoletin);
+router.post("/alta",  agregarBoletin);
 router.get("/listar", getBoletin);
 
 module.exports = router;
