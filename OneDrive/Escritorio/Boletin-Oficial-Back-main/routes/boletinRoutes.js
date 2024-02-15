@@ -7,6 +7,7 @@ const {
   agregarBoletin,
   getBoletin,
   getBuscar,
+
 } = require("../controllers/boletinesControllers");
 // const { agregarReporte, getReportes, actualizarReporte, borrarReporte, getReportesPodio, getReportesPaginacion, getReportesHistorico, getMesYTotalDeReportesVisualizadorYSupervisor, getTopTresDespachadosPorMes } = require("../controllers/boletinesControllers");
 const { funcionMulter } = require("../middlewares/multerStorage");
@@ -22,7 +23,9 @@ const router = Router();
 
 router.post("/alta", agregarBoletin);
 router.get("/listar", getBoletin);
-router.get('/boletines/buscar/:nroBoletin', getBuscar);
+router.get("/buscar/:nroBoletin", getBuscar);
+
+
 // router.get("/listarHistorico", auth,verifyRoleEstadistica,getReportesHistorico);
 // router.get("/listarConPaginacion", auth,verifyRoleEstadistica,getReportesPaginacion);
 // router.get("/podio/:turno?", auth,getReportesPodio);

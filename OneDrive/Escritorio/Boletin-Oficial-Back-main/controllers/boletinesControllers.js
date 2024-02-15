@@ -82,15 +82,10 @@ const getBoletin = async (req, res) => {
   
       const {nroBoletin} = req.params  // Se obtiene el parámetro nroBoletin de la URL
      
-      try {  // Se utiliza el modelo Boletin para buscar un boletín 
-        //en la base de datos por el número de boletín
-        const boletines = await getBoletin({nroBoletin});
-        if (!boletines) {
-          // Si no se encuentra ningún boletín con el número especificado, se devuelve un 404
-         
-          return res.status(404).json({ message: "Boletín no encontrado" });
-        }
-        res.json(boletines);
+      try {  
+        const boletines = await Boletin.findOne({nroBoletin});
+         res.json(boletines);
+       
       } catch (error) {
         console.error("Error al buscar boletines: ", error);
         // Si ocurre un error durante la búsqueda, se devuelve un código
@@ -101,8 +96,7 @@ const getBoletin = async (req, res) => {
     };
 
 
-
-
+   
 
 
     
