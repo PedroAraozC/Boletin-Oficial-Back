@@ -1,7 +1,7 @@
 const { Schema, model } = require("mongoose");
 const mongooseUniqueValidator = require("mongoose-unique-validator");
 
-const archivoBoletinSchema = new Schema(
+const ArchivoBoletinSchema = new Schema(
   {
     rutaArchivo: {
       type: String,
@@ -25,8 +25,8 @@ const archivoBoletinSchema = new Schema(
   }
 );
 
-archivoBoletinSchema.plugin(mongooseUniqueValidator, {
+ArchivoBoletinSchema.plugin(mongooseUniqueValidator, {
   message: "{PATH} debe ser único",
 });
 
-module.exports = model("archivoBoletin", archivoBoletinSchema);
+module.exports = model("archivoBoletin", ArchivoBoletinSchema);
