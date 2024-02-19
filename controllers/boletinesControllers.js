@@ -90,7 +90,7 @@ const obtenerArchivosDeUnBoletin = async (req, res) => {
       .find({ boletin: req.params.id })
       .populate("boletin");
 
-      console.log(archivosBoletin)
+    console.log(archivosBoletin);
 
     if (archivosBoletin.length > 1) {
       const zip = archiver("zip");
@@ -127,8 +127,100 @@ const obtenerArchivosDeUnBoletin = async (req, res) => {
   }
 };
 
+const getBuscar = async (req, res) => {
+  const { nroBoletin } = req.params;
+  console.log("+++", nroBoletin);
+  try {
+    const boletines = await Boletin.find({ nroBoletin });
+    res.json(boletines);
+  } catch (error) {
+    console.error("Error al buscar boletines: ", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
+
+// probando otro buscador 01 y buscadormio2
+const getBuscarFecha = async (req, res) => {
+  const { fechaBoletin } = req.params;
+  console.log("***", fechaBoletin);
+
+  try {
+    const boletines = await Boletin.find({ fechaBoletin });
+    res.json(boletines);
+  } catch (error) {
+    console.error("Error al buscar boletines: ", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
+const getBuscarDecreto = async (req, res) => {
+  const { nroDecreto } = req.params;
+  console.log("+++", nroDecreto);
+  try {
+    const boletines = await Boletin.find({ nroDecreto });
+    res.json(boletines);
+  } catch (error) {
+    console.error("Error al buscar Decreto: ", error);
+    res.status(500).json({ message: "Error al buscar Decreto" });
+  }
+};
+const getBuscarOrdenanza = async (req, res) => {
+  const { nroOrdenanza } = req.params;
+  console.log("+++", nroBoletin);
+  try {
+    const boletines = await Boletin.find({ nroOrdenanza });
+    res.json(boletines);
+  } catch (error) {
+    console.error("Error al buscar Ordenanza: ", error);
+    res.status(500).json({ message: "Error al buscar Ordenanza" });
+  }
+};
+const getBuscarResolucion = async (req, res) => {
+  const { nroResolucion } = req.params;
+  console.log("+++", nroResolucion);
+  try {
+    const boletines = await Boletin.find({ nroResolucion });
+    res.json(boletines);
+  } catch (error) {
+    console.error("Error al buscar Resolucion: ", error);
+    res.status(500).json({ message: "Error al buscar Resolucion" });
+  }
+};
+
+const getBuscarNroYFecha = async (req, res) => {
+  const { nroBoletin, fechaBoletin } = req.params;
+  console.log("Número de Boletín:", nroBoletin);
+  console.log("Fecha de Boletín:", fechaBoletin);
+  try {
+    let query = Boletin.find();
+    if (nroBoletin !== undefined && fechaBoletin !== undefined) {
+      query = query.where({ nroBoletin, fechaBoletin });
+    } else {
+      // Agregar condiciones individuales si solo uno de los parámetros está presente
+      if (nroBoletin !== undefined) {
+        query = query.where({ nroBoletin });
+      }
+
+      if (fechaBoletin !== undefined) {
+        query = query.where({ fechaBoletin });
+      }
+    }
+
+    const boletines = await query.exec();
+    res.json(boletines);
+  } catch (error) {
+    console.error("Error al buscar boletines: ", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
+
 module.exports = {
   agregarBoletin,
   getBoletin,
+  getBuscar,
   obtenerArchivosDeUnBoletin,
+  getBuscarFecha,
+  getBuscarDecreto,
+  getBuscarOrdenanza,
+  getBuscarResolucion,
+  getBuscarNroYFecha,
 };
