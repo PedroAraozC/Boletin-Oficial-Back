@@ -1,0 +1,7 @@
+### GET  BOLETIN BY NRO - OK - 
+
+GET http://localhost:4000/boletin/buscar/131
+
+### GET ALL BOLETIN -OK -
+
+GET http://localhost:4000/boletin/listar/
