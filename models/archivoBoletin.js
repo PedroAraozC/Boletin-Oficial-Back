@@ -6,17 +6,17 @@ const ArchivoBoletinSchema = new Schema(
     rutaArchivo: {
       type: String,
       trim: true,
-      ref: "rutaArchivo",
+      required: [true, "La ruta del archivo es requerida"],
     },
     estado: {
-      //borrado logico
+      // Borrado lógico
       type: Boolean,
       default: true,
     },
     archivoBoletin: {
       type: Schema.Types.ObjectId,
-      ref: "archivoBoletin",
-      required: [true, "El Boletin es requerido"],
+      ref: "archivoBoletin", // Referencia a sí mismo (para relaciones entre archivos)
+      required: [true, "El archivo del boletín es requerido"],
     },
   },
   {
@@ -29,4 +29,4 @@ ArchivoBoletinSchema.plugin(mongooseUniqueValidator, {
   message: "{PATH} debe ser único",
 });
 
-module.exports = model("archivoBoletin", ArchivoBoletinSchema);
+module.exports = model("ArchivoBoletin", ArchivoBoletinSchema);

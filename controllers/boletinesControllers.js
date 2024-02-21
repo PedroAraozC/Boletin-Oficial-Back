@@ -54,9 +54,8 @@ const agregarBoletin = async (req, res) => {
       console.log(typeof req.file.fieldname, "51");
 
       const rutaArchivo = path.join(
-        __dirname,
-        "../archivoBoletin",
-        req.file.fieldname
+        "C:\\Users\\Administrador\\Desktop\\Ditec-Code\\boletin-oficial-back\\archivoBoletin",
+        req.file.filename
       );
 
       const newArchivoBoletin = new ArchivoBoletin({
@@ -86,44 +85,38 @@ const getBoletin = async (req, res) => {
 
 const obtenerArchivosDeUnBoletin = async (req, res) => {
   try {
-    const archivosBoletin = await archivoBoletin
-      .find({ boletin: req.params.id })
-      .populate("boletin");
+    console.log("Hola");
 
-    console.log(archivosBoletin);
+    const idBoletin = req.params.id;
+    console.log(idBoletin);
+    const archivosBoletin = await ArchivoBoletin.find({
+      archivoBoletin: idBoletin,
+    });
 
-    if (archivosBoletin.length > 1) {
-      const zip = archiver("zip");
+    console.log(archivoBoletin);
 
-      res.attachment("archivosBoletin.zip");
-      zip.pipe(res);
-
-      archivosBoletin.forEach((archivo) => {
-        if (fs.existsSync(archivo.rutaArchivo)) {
-          const partesRuta = archivo.rutaArchivo.split("\\");
-          const nombreArchivo = partesRuta[partesRuta.length - 1];
-          zip.append(fs.createReadStream(archivo.rutaArchivo), {
-            name: nombreArchivo,
-          });
-        } else {
-          throw new CustomError("archivo no encontrado", 404);
-        }
+    if (archivosBoletin.length === 0) {
+      return res.status(404).json({
+        message: "No se encontraron archivos para el boletin especificado",
       });
-
-      zip.finalize();
-    } else if (archivosBoletin.length == 0) {
-      throw new CustomError("Boletin sin archivos", 404);
-    } else {
-      if (fs.existsSync(archivosBoletin[0].rutaArchivo)) {
-        res.sendFile(archivosBoletin[0].rutaArchivo);
+    } else if (archivosBoletin.length === 1) {
+      const archivo = archivosBoletin[0];
+      if (fs.existsSync(archivo.rutaArchivo)) {
+        return res.sendFile(archivo.rutaArchivo);
       } else {
-        throw new CustomError("archivo no encontrado", 404);
+        console.log(archivosBoletin);
+        console.log(archivo.rutaArchivo);
+        throw new CustomError("Archivo no encontrado", 404);
       }
+    } else {
+      throw new CustomError("Boletín con más de un archivo adjunto", 400);
     }
   } catch (error) {
+    console.error("Error al obtener archivos de un boletín:", error);
+
     res
       .status(error.code || 500)
-      .json({ message: error.message || "algo explotó :|" });
+      .json({ message: error.message || "Algo explotó :|" });
   }
 };
 
