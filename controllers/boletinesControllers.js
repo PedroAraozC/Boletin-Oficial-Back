@@ -85,15 +85,10 @@ const getBoletin = async (req, res) => {
 
 const obtenerArchivosDeUnBoletin = async (req, res) => {
   try {
-    console.log("Hola");
-
     const idBoletin = req.params.id;
-    console.log(idBoletin);
     const archivosBoletin = await ArchivoBoletin.find({
       archivoBoletin: idBoletin,
     });
-
-    console.log(archivoBoletin);
 
     if (archivosBoletin.length === 0) {
       return res.status(404).json({
@@ -117,6 +112,16 @@ const obtenerArchivosDeUnBoletin = async (req, res) => {
     res
       .status(error.code || 500)
       .json({ message: error.message || "Algo explotó :|" });
+  }
+};
+
+const buscarBoletin = async (req, res, query) => {
+  try {
+    const result = await query.exec();
+    res.json(result);
+  } catch (error) {
+    console.error("Error al buscar boletines:", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
   }
 };
 
@@ -145,6 +150,24 @@ const getBuscarFecha = async (req, res) => {
     res.status(500).json({ message: "Error al buscar boletines" });
   }
 };
+
+const getBuscarPorTipo = async (req, res) => {
+  const { tipo, parametro } = req.params;
+  let query;
+  
+  switch (tipo) {
+    case 'nroDecreto':
+    case 'nroOrdenanza':
+    case 'nroResolucion':
+      query = Boletin.find({ [tipo]: parametro });
+      break;
+    default:
+      throw new CustomError("Tipo de búsqueda no válido", 400);
+  }
+
+  buscarBoletin(req, res, query);
+};
+
 const getBuscarDecreto = async (req, res) => {
   const { nroDecreto } = req.params;
   console.log("+++", nroDecreto);
@@ -212,8 +235,6 @@ module.exports = {
   getBuscar,
   obtenerArchivosDeUnBoletin,
   getBuscarFecha,
-  getBuscarDecreto,
-  getBuscarOrdenanza,
-  getBuscarResolucion,
   getBuscarNroYFecha,
+  getBuscarPorTipo
 };
