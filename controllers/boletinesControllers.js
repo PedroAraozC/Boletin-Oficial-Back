@@ -172,13 +172,17 @@ const getBuscarPorTipo = async (req, res) => {
         }
 
       case "Ordenanza":
+        console.log(parametro,"175")
         if (!parametro || parametro === "undefined" || parametro === "") {
+          console.log(parametro, "177");
           boletines = await Boletin.find({
             estado: true, // Si deseas buscar solo boletines activos
             nroOrdenanza: { $exists: true, $ne: [] },
           });
           break;
         } else {
+          console.log(parametro, "184");
+
           boletines = await Boletin.find({
             estado: true, // Si deseas buscar solo boletines activos
             nroOrdenanza: { $in: [parametro] },
@@ -208,6 +212,7 @@ const getBuscarPorTipo = async (req, res) => {
   } catch (error) {
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
+    console.log("value.parametro, value.tipo")
   }
 };
 
