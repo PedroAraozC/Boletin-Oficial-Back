@@ -8,7 +8,8 @@ const {
   getBuscarFecha,
   getBuscarNroYFecha,
   getBuscarPorTipo,
-  getBuscarPorFecha
+  getBuscarPorFecha,
+  getBuscarPorTodo
 } = require("../controllers/boletinesControllers");
 
 const router = Router();
@@ -20,6 +21,7 @@ router.get("/buscarFecha/:fechaBoletin", getBuscarFecha);
 router.get("/buscarNroYFecha/:nroBoletin/:fechaBoletin", getBuscarNroYFecha);
 router.get("/buscarPorTipo/:tipo/:parametro", getBuscarPorTipo);
 router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFecha);
+router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodo);
 
 router.post("/alta", agregarBoletin);
 router.post("/subir-archivo", funcionMulter);
