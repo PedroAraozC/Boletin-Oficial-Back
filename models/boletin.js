@@ -1,3 +1,30 @@
+// const Sequelize = require('sequelize');
+// const sequelize = require('../database/connection'); // Importa la instancia de Sequelize
+
+// const Boletin = sequelize.define('Boletin', {
+//   id_boletin: {
+//     type: Sequelize.INTEGER,
+//     primaryKey: true,
+//     autoIncrement: true
+//   },
+//   nro_boletin: {
+//     type: Sequelize.STRING(25),
+//     unique: true,
+//     allowNull: false
+//   },
+//   fecha_publicacion: {
+//     type: Sequelize.DATE,
+//     allowNull: false
+//   },
+//   habilita: {
+//     type: Sequelize.BOOLEAN,
+//     allowNull: false
+//   }
+// });
+
+// module.exports = Boletin;
+
+
 const { Schema, model } = require("mongoose");
 const mongooseUniqueValidator = require("mongoose-unique-validator");
 

@@ -9,12 +9,14 @@ const {
   getBuscarNroYFecha,
   getBuscarPorTipo,
   getBuscarPorFecha,
-  getBuscarPorTodo
+  getBuscarPorTodo,
+  getBoletinesMysql
 } = require("../controllers/boletinesControllers");
 
 const router = Router();
 
-router.get("/listar", getBoletin);
+// router.get("/listar", getBoletin);
+router.get("/listar", getBoletinesMysql);
 router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletin);
 router.get("/buscar/:nroBoletin", getBuscar);
 router.get("/buscarFecha/:fechaBoletin", getBuscarFecha);

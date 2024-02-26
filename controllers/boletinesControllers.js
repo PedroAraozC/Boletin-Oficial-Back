@@ -6,7 +6,22 @@ const multer = require("multer");
 const { funcionMulter } = require("../middlewares/multerStorage");
 const fs = require("fs");
 const archivoBoletin = require("../models//archivoBoletin");
+const { conectarMySql } = require("../config/dbMySql");
 
+//mysql
+const getBoletinesMysql = async (req, res) => {
+  console.log("first");
+  try {
+    const db = await conectarMySql(); // Espera a que se resuelva la promesa
+    const [boletines] = await db.query("SELECT * FROM boletin");
+    res.json(boletines);
+  } catch (error) {
+    console.error("Error al buscar boletines:", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
+
+//conMongo
 const agregarBoletin = async (req, res) => {
   try {
     funcionMulter()(req, res, async (err) => {
@@ -54,7 +69,8 @@ const agregarBoletin = async (req, res) => {
       console.log(typeof req.file.fieldname, "51");
 
       const rutaArchivo = path.join(
-        "C:\\Users\\Administrador\\Desktop\\Ditec-Code\\boletin-oficial-back\\archivoBoletin",
+        "C:\\Users\\Programadores\\Desktop\\Boletin-Oficial-Back\\archivoBoletin",
+        // "C:\\Users\\Administrador\\Desktop\\Ditec-Code\\boletin-oficial-back\\archivoBoletin",
         req.file.filename
       );
 
@@ -358,4 +374,5 @@ module.exports = {
   getBuscarPorTipo,
   getBuscarPorFecha,
   getBuscarPorTodo,
+  getBoletinesMysql,
 };
