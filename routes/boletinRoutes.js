@@ -10,6 +10,7 @@ const {
   getBuscarPorTipoMySql,
   getBuscarPorFechaMySql,
   getBuscarPorTodoMySql,
+  obtenerArchivosDeUnBoletinMySql,
   // getBoletin,
   // getBuscar,
   // getBuscarFecha,
@@ -22,7 +23,8 @@ const {
 const router = Router();
 
 router.get("/listar", getBoletinesMySql);                                             //MySql
-router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletin);                       //mongo
+// router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletin);                    //mongo
+router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletinMySql);                  //MySql
 router.get("/buscar/:nroBoletin", getBuscarNroMySql);                                 //MySql
 router.get("/buscarFecha/:fechaBoletin", getBuscarFechaMySql);                        //MySql
 router.get(

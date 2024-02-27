@@ -245,7 +245,7 @@ const getBuscarPorTodoMySql = async (req, res) => {
     ) {
       switch (tipo) {
         case "Decreto":
-        [boletines] = await db.query(
+          [boletines] = await db.query(
             `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
             JOIN boletin b ON cb.id_boletin = b.id_boletin
@@ -259,26 +259,26 @@ const getBuscarPorTodoMySql = async (req, res) => {
 
         case "Ordenanza":
           [boletines] = await db.query(
-              `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
               FROM contenido_boletin cb
               JOIN boletin b ON cb.id_boletin = b.id_boletin
               WHERE cb.id_norma = 2
               AND b.habilita = 1
               AND cb.fecha_norma = '${fecha}'
               AND cb.nro_norma = '${nroNorma}'; `
-            );
+          );
           break;
 
         case "Resolucion":
           [boletines] = await db.query(
-              `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
               FROM contenido_boletin cb
               JOIN boletin b ON cb.id_boletin = b.id_boletin
               WHERE cb.id_norma = 3
               AND b.habilita = 1
               AND cb.fecha_norma = '${fecha}'
               AND cb.nro_norma = '${nroNorma}'; `
-            );
+          );
           break;
         default:
           throw new CustomError("Tipo de búsqueda no válido", 400);
@@ -289,6 +289,49 @@ const getBuscarPorTodoMySql = async (req, res) => {
   } catch (error) {
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
+
+const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
+  try {
+    const idBoletin = req.params.id;
+    const rutaArchivo = await construirRutaArchivo(idBoletin); // Función para construir la ruta del archivo
+    if (fs.existsSync(rutaArchivo)) {
+      console.log(rutaArchivo);
+      return res.sendFile(rutaArchivo);
+    } else {
+      return res.status(404).json({
+        message: "Archivo no encontrado para el boletín especificado",
+      });
+    }
+  } catch (error) {
+    console.error("Error al obtener archivos de un boletín:", error);
+    res.status(500).json({ message: "Error al obtener archivos del boletín" });
+  }
+};
+
+const construirRutaArchivo = async (idBoletin) => {
+  const boletin = await obtenerDatosDelBoletin(idBoletin);
+  console.log(boletin, "hola");
+  const rutaArchivo = `C:\\Users\\Programadores\\Desktop\\Boletin\\${boletin.fecha_publicacion
+    .toISOString()
+    .slice(0, 4)}\\bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
+    .toISOString()
+    .slice(0, 10)}.pdf`;
+  console.log(rutaArchivo);
+  return rutaArchivo;
+};
+
+const obtenerDatosDelBoletin = async (idBoletin) => {
+  const db = await conectarMySql();
+  const [boletines] = await db.query(
+    `SELECT * FROM boletin WHERE id_boletin = ${idBoletin} AND habilita = 1`
+  );
+  if (boletines.length > 0) {
+    return boletines[0];
+  } else {
+    console.error("Error al obtener archivos de un boletín:", error);
+    throw new Error("No se encontraron boletines para el ID especificado");
   }
 };
 
@@ -382,37 +425,37 @@ const agregarBoletin = async (req, res) => {
 //   }
 // };
 
-const obtenerArchivosDeUnBoletin = async (req, res) => {
-  try {
-    const idBoletin = req.params.id;
-    const archivosBoletin = await ArchivoBoletin.find({
-      archivoBoletin: idBoletin,
-    });
+// const obtenerArchivosDeUnBoletin = async (req, res) => {
+//   try {
+//     const idBoletin = req.params.id;
+//     const archivosBoletin = await ArchivoBoletin.find({
+//       archivoBoletin: idBoletin,
+//     });
 
-    if (archivosBoletin.length === 0) {
-      return res.status(404).json({
-        message: "No se encontraron archivos para el boletin especificado",
-      });
-    } else if (archivosBoletin.length === 1) {
-      const archivo = archivosBoletin[0];
-      if (fs.existsSync(archivo.rutaArchivo)) {
-        return res.sendFile(archivo.rutaArchivo);
-      } else {
-        console.log(archivosBoletin);
-        console.log(archivo.rutaArchivo);
-        throw new CustomError("Archivo no encontrado", 404);
-      }
-    } else {
-      throw new CustomError("Boletín con más de un archivo adjunto", 400);
-    }
-  } catch (error) {
-    console.error("Error al obtener archivos de un boletín:", error);
+//     if (archivosBoletin.length === 0) {
+//       return res.status(404).json({
+//         message: "No se encontraron archivos para el boletin especificado",
+//       });
+//     } else if (archivosBoletin.length === 1) {
+//       const archivo = archivosBoletin[0];
+//       if (fs.existsSync(archivo.rutaArchivo)) {
+//         return res.sendFile(archivo.rutaArchivo);
+//       } else {
+//         console.log(archivosBoletin);
+//         console.log(archivo.rutaArchivo);
+//         throw new CustomError("Archivo no encontrado", 404);
+//       }
+//     } else {
+//       throw new CustomError("Boletín con más de un archivo adjunto", 400);
+//     }
+//   } catch (error) {
+//     console.error("Error al obtener archivos de un boletín:", error);
 
-    res
-      .status(error.code || 500)
-      .json({ message: error.message || "Algo explotó :|" });
-  }
-};
+//     res
+//       .status(error.code || 500)
+//       .json({ message: error.message || "Algo explotó :|" });
+//   }
+// };
 
 // const buscarBoletin = async (req, res, query) => {
 //   try {
@@ -637,7 +680,6 @@ const obtenerArchivosDeUnBoletin = async (req, res) => {
 
 module.exports = {
   agregarBoletin,
-  obtenerArchivosDeUnBoletin,
   getBoletinesMySql,
   getBuscarNroMySql,
   getBuscarFechaMySql,
@@ -645,6 +687,7 @@ module.exports = {
   getBuscarPorTipoMySql,
   getBuscarPorFechaMySql,
   getBuscarPorTodoMySql,
+  obtenerArchivosDeUnBoletinMySql,
   // getBoletin,
   // getBuscar,
   // getBuscarFecha,
@@ -652,4 +695,5 @@ module.exports = {
   // getBuscarPorTipo,
   // getBuscarPorFecha,
   // getBuscarPorTodo,
+  // obtenerArchivosDeUnBoletin,
 };
