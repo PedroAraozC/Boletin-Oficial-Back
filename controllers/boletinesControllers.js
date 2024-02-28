@@ -312,13 +312,13 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
 
 const construirRutaArchivo = async (idBoletin) => {
   const boletin = await obtenerDatosDelBoletin(idBoletin);
-  console.log(boletin, "hola");
+  // console.log(boletin, "hola");
   const rutaArchivo = `C:\\Users\\Programadores\\Desktop\\Boletin\\${boletin.fecha_publicacion
     .toISOString()
     .slice(0, 4)}\\bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
     .toISOString()
     .slice(0, 10)}.pdf`;
-  console.log(rutaArchivo);
+  // console.log(rutaArchivo);
   return rutaArchivo;
 };
 
