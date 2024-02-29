@@ -8,7 +8,6 @@ const conectarSFTP = async () => {
       username: process.env.USER_WINSCP,
       password: process.env.PASSWORD_WINSCP,
     });
-    console.log(client);
     return client;
   } catch (error) {
     console.error("Error de conexión SFTP:", error);

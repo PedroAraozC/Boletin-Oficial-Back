@@ -75,14 +75,18 @@ const getBuscarNroYFechaMySql = async (req, res) => {
 
 const getBuscarPorTipoMySql = async (req, res) => {
   const { tipo, parametro } = req.params;
+  console.log(req.params)
+
   let boletines = [];
   try {
     switch (tipo) {
       case "Decreto":
         if (!parametro || parametro === "undefined" || parametro === "") {
           const db = await conectarMySql();
+          console.log(tipo, "84");
+
           [boletines] = await db.query(
-            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
             JOIN boletin b ON cb.id_boletin = b.id_boletin
             WHERE cb.id_norma = 1
@@ -91,8 +95,10 @@ const getBuscarPorTipoMySql = async (req, res) => {
           break;
         } else {
           const db = await conectarMySql();
+          console.log(tipo, "96");
+
           [boletines] = await db.query(
-            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
             JOIN boletin b ON cb.id_boletin = b.id_boletin
             WHERE cb.id_norma = 1
@@ -103,12 +109,12 @@ const getBuscarPorTipoMySql = async (req, res) => {
         }
 
       case "Ordenanza":
-        console.log(parametro, "175");
+        console.log(tipo, "110");
         if (!parametro || parametro === "undefined" || parametro === "") {
-          console.log(parametro, "177");
+          console.log(parametro, "112");
           const db = await conectarMySql();
           [boletines] = await db.query(
-            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
             JOIN boletin b ON cb.id_boletin = b.id_boletin
             WHERE cb.id_norma = 2
@@ -116,10 +122,10 @@ const getBuscarPorTipoMySql = async (req, res) => {
           );
           break;
         } else {
-          console.log(parametro, "184");
+          console.log(tipo, "123");
           const db = await conectarMySql();
           [boletines] = await db.query(
-            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
             JOIN boletin b ON cb.id_boletin = b.id_boletin
             WHERE cb.id_norma = 2
@@ -132,21 +138,25 @@ const getBuscarPorTipoMySql = async (req, res) => {
       case "Resolucion":
         if (!parametro || parametro === "undefined" || parametro === "") {
           const db = await conectarMySql();
+          console.log(tipo, "139");
+
           [boletines] = await db.query(
-            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
             JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 2
+            WHERE cb.id_norma = 3
             AND b.habilita = 1;`
           );
           break;
         } else {
           const db = await conectarMySql();
+          console.log(tipo, "151");
+
           [boletines] = await db.query(
-            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
             JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 2
+            WHERE cb.id_norma = 3
             AND b.habilita = 1
             AND cb.nro_norma = '${parametro}'; `
           );
@@ -173,7 +183,7 @@ const getBuscarPorFechaMySql = async (req, res) => {
     } else if ((!tipo || tipo === "undefined" || tipo === "") && fecha !== "") {
       const db = await conectarMySql();
       [boletines] = await db.query(
-        `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+        `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
         FROM contenido_boletin cb
         JOIN boletin b ON cb.id_boletin = b.id_boletin
         WHERE cb.fecha_norma = '${fecha}'
@@ -184,7 +194,7 @@ const getBuscarPorFechaMySql = async (req, res) => {
       switch (tipo) {
         case "Decreto":
           [boletines] = await db.query(
-            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
             JOIN boletin b ON cb.id_boletin = b.id_boletin
             WHERE cb.id_norma = 1
@@ -195,7 +205,7 @@ const getBuscarPorFechaMySql = async (req, res) => {
 
         case "Ordenanza":
           [boletines] = await db.query(
-            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
             JOIN boletin b ON cb.id_boletin = b.id_boletin
             WHERE cb.id_norma = 2
@@ -206,7 +216,7 @@ const getBuscarPorFechaMySql = async (req, res) => {
 
         case "Resolucion":
           [boletines] = await db.query(
-            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
             JOIN boletin b ON cb.id_boletin = b.id_boletin
             WHERE cb.id_norma = 3
@@ -247,7 +257,7 @@ const getBuscarPorTodoMySql = async (req, res) => {
       switch (tipo) {
         case "Decreto":
           [boletines] = await db.query(
-            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
             JOIN boletin b ON cb.id_boletin = b.id_boletin
             WHERE cb.id_norma = 1
@@ -260,7 +270,7 @@ const getBuscarPorTodoMySql = async (req, res) => {
 
         case "Ordenanza":
           [boletines] = await db.query(
-            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
               FROM contenido_boletin cb
               JOIN boletin b ON cb.id_boletin = b.id_boletin
               WHERE cb.id_norma = 2
@@ -272,7 +282,7 @@ const getBuscarPorTodoMySql = async (req, res) => {
 
         case "Resolucion":
           [boletines] = await db.query(
-            `SELECT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
               FROM contenido_boletin cb
               JOIN boletin b ON cb.id_boletin = b.id_boletin
               WHERE cb.id_norma = 3
@@ -334,7 +344,7 @@ const construirRutaArchivo = async (idBoletin) => {
     .toISOString()
     .slice(0, 10)}.pdf`;
   //`/home\\boletin\\
-  
+
   console.log(rutaArchivo);
   return rutaArchivo;
 };
