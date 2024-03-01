@@ -1,8 +1,8 @@
-const sftp = require("ssh2-sftp-client"); // Importar el módulo completo
+const sftp = require("ssh2-sftp-client"); 
 
 const conectarSFTP = async () => {
   try {
-    const client = new sftp(); // Crear una instancia del cliente
+    const client = new sftp(); 
     await client.connect({
       host: process.env.HOST_WINSCP,
       username: process.env.USER_WINSCP,

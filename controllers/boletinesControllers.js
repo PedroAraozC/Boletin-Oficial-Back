@@ -75,16 +75,13 @@ const getBuscarNroYFechaMySql = async (req, res) => {
 
 const getBuscarPorTipoMySql = async (req, res) => {
   const { tipo, parametro } = req.params;
-  console.log(req.params)
-
   let boletines = [];
+  
   try {
     switch (tipo) {
       case "Decreto":
         if (!parametro || parametro === "undefined" || parametro === "") {
           const db = await conectarMySql();
-          console.log(tipo, "84");
-
           [boletines] = await db.query(
             `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
@@ -95,8 +92,6 @@ const getBuscarPorTipoMySql = async (req, res) => {
           break;
         } else {
           const db = await conectarMySql();
-          console.log(tipo, "96");
-
           [boletines] = await db.query(
             `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
@@ -109,9 +104,7 @@ const getBuscarPorTipoMySql = async (req, res) => {
         }
 
       case "Ordenanza":
-        console.log(tipo, "110");
         if (!parametro || parametro === "undefined" || parametro === "") {
-          console.log(parametro, "112");
           const db = await conectarMySql();
           [boletines] = await db.query(
             `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
@@ -122,7 +115,6 @@ const getBuscarPorTipoMySql = async (req, res) => {
           );
           break;
         } else {
-          console.log(tipo, "123");
           const db = await conectarMySql();
           [boletines] = await db.query(
             `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
@@ -138,8 +130,6 @@ const getBuscarPorTipoMySql = async (req, res) => {
       case "Resolucion":
         if (!parametro || parametro === "undefined" || parametro === "") {
           const db = await conectarMySql();
-          console.log(tipo, "139");
-
           [boletines] = await db.query(
             `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
@@ -150,8 +140,6 @@ const getBuscarPorTipoMySql = async (req, res) => {
           break;
         } else {
           const db = await conectarMySql();
-          console.log(tipo, "151");
-
           [boletines] = await db.query(
             `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
@@ -170,7 +158,6 @@ const getBuscarPorTipoMySql = async (req, res) => {
   } catch (error) {
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
-    console.log("value.parametro, value.tipo");
   }
 };
 
@@ -306,11 +293,9 @@ const getBuscarPorTodoMySql = async (req, res) => {
 const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
   try {
     const idBoletin = req.params.id;
-    const rutaArchivo = await construirRutaArchivo(idBoletin); // Función para construir la ruta del archivo
-    // console.log(rutaArchivo);
-
+    const rutaArchivo = await construirRutaArchivo(idBoletin);
     const sftp = await conectarSFTP();
-    // console.log(sftp, "saaaaa")
+
     if (!sftp || !sftp.sftp) {
       throw new Error(
         "Error de conexión SFTP: no se pudo establecer la conexión correctamente"
@@ -320,14 +305,6 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
     const fileBuffer = await sftp.get(remoteFilePath);
     res.send(fileBuffer);
     await sftp.end();
-    // if (fs.existsSync(rutaArchivo)) {
-    //   // console.log(rutaArchivo);
-    //   return res.sendFile(rutaArchivo);
-    // } else {
-    // return res.status(404).json({
-    //   // message: "Archivo no encontrado para el boletín especificado",
-    // });
-    // }
   } catch (error) {
     console.error("Error al obtener archivos de un boletín:", error);
     res.status(500).json({ message: "Error al obtener archivos del boletín" });
@@ -336,16 +313,13 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
 
 const construirRutaArchivo = async (idBoletin) => {
   const boletin = await obtenerDatosDelBoletin(idBoletin);
-  // console.log(boletin, "hola");
-  // const rutaArchivo = `/home/boletin/2024/bol_4359_040124.pdf`;
+
   const rutaArchivo = `/home/boletin/${boletin.fecha_publicacion
     .toISOString()
     .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
     .toISOString()
     .slice(0, 10)}.pdf`;
-  //`/home\\boletin\\
 
-  console.log(rutaArchivo);
   return rutaArchivo;
 };
 
