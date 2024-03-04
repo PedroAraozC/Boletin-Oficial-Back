@@ -1,67 +1,52 @@
 const { Router } = require("express");
-const verifyRole = require("../middlewares/verifyRole");
-const auth = require("../middlewares/auth");
-const { check } = require("express-validator");
-const validateFields = require("../middlewares/validateFields");
+const { funcionMulter } = require("../middlewares/multerStorage");
 const {
   agregarBoletin,
-  getBoletin,
+  obtenerArchivosDeUnBoletin,
+  getBoletinesMySql,
+  getBuscarNroMySql,
+  getBuscarFechaMySql,
+  getBuscarNroYFechaMySql,
+  getBuscarPorTipoMySql,
+  getBuscarPorFechaMySql,
+  getBuscarPorTodoMySql,
+  obtenerArchivosDeUnBoletinMySql,
+  // getBoletin,
+  // getBuscar,
+  // getBuscarFecha,
+  // getBuscarNroYFecha,
+  // getBuscarPorTipo,
+  // getBuscarPorFecha,
+  // getBuscarPorTodo,
 } = require("../controllers/boletinesControllers");
-// const { agregarReporte, getReportes, actualizarReporte, borrarReporte, getReportesPodio, getReportesPaginacion, getReportesHistorico, getMesYTotalDeReportesVisualizadorYSupervisor, getTopTresDespachadosPorMes } = require("../controllers/boletinesControllers");
-const { funcionMulter } = require("../middlewares/multerStorage");
-// const verifyRoleEstadistica = require("../middlewares/verifyRolEstadistica");
 
 const router = Router();
 
-// const boletin = require("../models/boletin");
-//  router.get("/",async (req, res) =>{
-//   const boletines = await boletin.find({})
-//   res.json(boletines)
-//  });
+router.get("/listar", getBoletinesMySql);                                             //MySql
+// router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletin);                    //mongo
+router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletinMySql);                  //MySql
+router.get("/buscar/:nroBoletin", getBuscarNroMySql);                                 //MySql
+router.get("/buscarFecha/:fechaBoletin", getBuscarFechaMySql);                        //MySql
+router.get(
+  "/buscarNroYFecha/:nroBoletin/:fechaBoletin",
+  getBuscarNroYFechaMySql
+);                                                                                    //MySql
+router.get("/buscarPorTipo/:tipo/:parametro", getBuscarPorTipoMySql);                 //MySql
+router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFechaMySql);                   //MySql
+router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql);           //MySql
+// router.get("/listar", getBoletin);                                                 //mongo
+// router.get("/buscar/:nroBoletin", getBuscar);                                      //mongo
+// router.get("/buscarFecha/:fechaBoletin", getBuscarFecha);                          //mongo
+// router.get("/buscarNroYFecha/:nroBoletin/:fechaBoletin", getBuscarNroYFecha);      //mongo
+// router.get("/buscarPorTipo/:tipo/:parametro", getBuscarPorTipo);                   //mongo
+// router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFecha);                     //mongo
+// router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodo);             //mongo
 
 router.post("/alta", agregarBoletin);
-router.get("/listar", getBoletin);
-// router.get("/listarHistorico", auth,verifyRoleEstadistica,getReportesHistorico);
-// router.get("/listarConPaginacion", auth,verifyRoleEstadistica,getReportesPaginacion);
-// router.get("/podio/:turno?", auth,getReportesPodio);
-// router.get("/totalesVisualizadorYSupervisor", auth,getMesYTotalDeReportesVisualizadorYSupervisor);
-// router.get("/podioDespachosPorMes/:turno?", auth, getTopTresDespachadosPorMes);
-
-// router.use("/alta",auth,(req, res, next) => {
-//     // Acceder a req antes de llegar al controlador
-//     funcionMulter(req.user).single("pdf")(req, res, () => {
-//       next();
-//     });
-//   })
-
-//   router.post("/alta",  [
-//     check("detalle", "El detalle no cumple los requisitos").not().isEmpty().isLength({min:4, max: 500 }),
-//     check("categoria", "Debe ser un id de mongodb").not().isEmpty().isMongoId(),
-//     check("naturaleza", "Debe ser un id de mongodb").not().isEmpty().isMongoId(),
-//     check("dispositivo", "Debe ser un id de mongodb").not().isEmpty().isMongoId(),
-//     check("usuario", "Debe ser un id de mongodb").not().isEmpty().isMongoId(),
-//     validateFields,
-//   ],
-
-//     agregarReporte
-//   )
-
-//   router.use("/actualizarReporte/:id",auth,(req, res, next) => {
-//     // Acceder a req antes de llegar al controlador
-//     funcionMulter(req.user).single("photo")(req, res, () => {
-//       next();
-//     });
-//   })
-
-//   router.put("/actualizarReporte/:id",auth, actualizarReporte);
-
-//   router.delete(
-//     "/",
-//     [ auth,
-//       check("id").not().isEmpty().isMongoId(),
-//       validateFields,
-//     ],
-//     borrarReporte
-//   );
+router.post("/subir-archivo", funcionMulter);
 
 module.exports = router;
+
+// router.get("/buscarDecreto/:nroDecreto", getBuscarDecreto);
+// router.get("/buscarOrdenanza/:nroOrdenanza", getBuscarOrdenanza);
+// router.get("/buscarResolucion/:nroResolucion", getBuscarResolucion);
