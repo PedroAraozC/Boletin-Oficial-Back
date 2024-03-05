@@ -22,19 +22,19 @@ const {
 
 const router = Router();
 
-router.get("/listar", getBoletinesMySql);                                             //MySql
-// router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletin);                    //mongo
-router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletinMySql);                  //MySql
-router.get("/buscar/:nroBoletin", getBuscarNroMySql);                                 //MySql
-router.get("/buscarFecha/:fechaBoletin", getBuscarFechaMySql);                        //MySql
+router.get("/listar", getBoletinesMySql); //MySql
+router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletinMySql); //MySql
+router.get("/buscar/:nroBoletin", getBuscarNroMySql); //MySql
+router.get("/buscarFecha/:fechaBoletin", getBuscarFechaMySql); //MySql
 router.get(
   "/buscarNroYFecha/:nroBoletin/:fechaBoletin",
   getBuscarNroYFechaMySql
-);                                                                                    //MySql
-router.get("/buscarPorTipo/:tipo/:parametro", getBuscarPorTipoMySql);                 //MySql
-router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFechaMySql);                   //MySql
-router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql);           //MySql
+); //MySql
+router.get("/buscarPorTipo/:tipo/:parametro", getBuscarPorTipoMySql); //MySql
+router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFechaMySql); //MySql
+router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql); //MySql
 // router.get("/listar", getBoletin);                                                 //mongo
+// router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletin);                    //mongo
 // router.get("/buscar/:nroBoletin", getBuscar);                                      //mongo
 // router.get("/buscarFecha/:fechaBoletin", getBuscarFecha);                          //mongo
 // router.get("/buscarNroYFecha/:nroBoletin/:fechaBoletin", getBuscarNroYFecha);      //mongo

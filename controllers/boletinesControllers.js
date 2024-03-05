@@ -76,10 +76,10 @@ const getBuscarNroYFechaMySql = async (req, res) => {
 const getBuscarPorTipoMySql = async (req, res) => {
   const { tipo, parametro } = req.params;
   let boletines = [];
-  
+
   try {
     switch (tipo) {
-      case "Decreto":
+      case "DECRETO":
         if (!parametro || parametro === "undefined" || parametro === "") {
           const db = await conectarMySql();
           [boletines] = await db.query(
@@ -103,7 +103,7 @@ const getBuscarPorTipoMySql = async (req, res) => {
           break;
         }
 
-      case "Ordenanza":
+      case "ORDENANZA":
         if (!parametro || parametro === "undefined" || parametro === "") {
           const db = await conectarMySql();
           [boletines] = await db.query(
@@ -127,7 +127,7 @@ const getBuscarPorTipoMySql = async (req, res) => {
           break;
         }
 
-      case "Resolucion":
+      case "RESOLUCION":
         if (!parametro || parametro === "undefined" || parametro === "") {
           const db = await conectarMySql();
           [boletines] = await db.query(
@@ -179,7 +179,7 @@ const getBuscarPorFechaMySql = async (req, res) => {
     } else if ((tipo !== "undefined" || tipo !== "") && fecha !== "") {
       const db = await conectarMySql();
       switch (tipo) {
-        case "Decreto":
+        case "DECRETO":
           [boletines] = await db.query(
             `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
@@ -190,7 +190,7 @@ const getBuscarPorFechaMySql = async (req, res) => {
           );
           break;
 
-        case "Ordenanza":
+        case "ORDENANZA":
           [boletines] = await db.query(
             `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
@@ -201,7 +201,7 @@ const getBuscarPorFechaMySql = async (req, res) => {
           );
           break;
 
-        case "Resolucion":
+        case "RESOLUCION":
           [boletines] = await db.query(
             `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
@@ -242,7 +242,7 @@ const getBuscarPorTodoMySql = async (req, res) => {
       (nroNorma !== "" || nroNorma !== undefined)
     ) {
       switch (tipo) {
-        case "Decreto":
+        case "DECRETO":
           [boletines] = await db.query(
             `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
             FROM contenido_boletin cb
@@ -255,7 +255,7 @@ const getBuscarPorTodoMySql = async (req, res) => {
 
           break;
 
-        case "Ordenanza":
+        case "ORDENANZA":
           [boletines] = await db.query(
             `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
               FROM contenido_boletin cb
@@ -267,7 +267,7 @@ const getBuscarPorTodoMySql = async (req, res) => {
           );
           break;
 
-        case "Resolucion":
+        case "RESOLUCION":
           [boletines] = await db.query(
             `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
               FROM contenido_boletin cb
@@ -376,17 +376,17 @@ const agregarBoletin = async (req, res) => {
       const {
         nroBoletin,
         fechaBoletin,
-        nroDecreto,
-        nroOrdenanza,
-        nroResolucion,
+        nroDECRETO,
+        nroORDENANZA,
+        nroRESOLUCION,
       } = requestData;
 
       const newBoletin = new Boletin({
         nroBoletin,
         fechaBoletin,
-        nroDecreto,
-        nroOrdenanza,
-        nroResolucion,
+        nroDECRETO,
+        nroORDENANZA,
+        nroRESOLUCION,
       });
 
       const boletinGuardado = await newBoletin.save();
@@ -396,7 +396,12 @@ const agregarBoletin = async (req, res) => {
       console.log(typeof req.file.fieldname, "51");
 
       const rutaArchivo = path.join(
-        "C:\\Users\\Programadores\\Desktop\\Boletin-Oficial-Back\\archivoBoletin",
+        `/home/boletin/${boletin.fecha_publicacion
+          .toISOString()
+          .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
+          .toISOString()
+          .slice(0, 10)}.pdf`,
+        // "C:\\Users\\Programadores\\Desktop\\Boletin-Oficial-Back\\archivoBoletin",
         // "C:\\Users\\Administrador\\Desktop\\Ditec-Code\\boletin-oficial-back\\archivoBoletin",
         req.file.filename
       );
@@ -487,28 +492,28 @@ const agregarBoletin = async (req, res) => {
 //   let boletines = [];
 //   try {
 //     switch (tipo) {
-//       case "Decreto":
+//       case "DECRETO":
 //         if (!parametro || parametro === "undefined" || parametro === "") {
 //           boletines = await Boletin.find({
 //             estado: true, // Si deseas buscar solo boletines activos
-//             nroDecreto: { $exists: true, $ne: [] },
+//             nroDECRETO: { $exists: true, $ne: [] },
 //           });
 //           break;
 //         } else {
 //           boletines = await Boletin.find({
 //             estado: true, // Si deseas buscar solo boletines activos
-//             nroDecreto: { $in: [parametro] },
+//             nroDECRETO: { $in: [parametro] },
 //           });
 //           break;
 //         }
 
-//       case "Ordenanza":
+//       case "ORDENANZA":
 //         console.log(parametro, "175");
 //         if (!parametro || parametro === "undefined" || parametro === "") {
 //           console.log(parametro, "177");
 //           boletines = await Boletin.find({
 //             estado: true, // Si deseas buscar solo boletines activos
-//             nroOrdenanza: { $exists: true, $ne: [] },
+//             nroORDENANZA: { $exists: true, $ne: [] },
 //           });
 //           break;
 //         } else {
@@ -516,22 +521,22 @@ const agregarBoletin = async (req, res) => {
 
 //           boletines = await Boletin.find({
 //             estado: true, // Si deseas buscar solo boletines activos
-//             nroOrdenanza: { $in: [parametro] },
+//             nroORDENANZA: { $in: [parametro] },
 //           });
 //           break;
 //         }
 
-//       case "Resolucion":
+//       case "RESOLUCION":
 //         if (!parametro || parametro === "undefined" || parametro === "") {
 //           boletines = await Boletin.find({
 //             estado: true, // Si deseas buscar solo boletines activos
-//             nroResolucion: { $exists: true, $ne: [] },
+//             nroRESOLUCION: { $exists: true, $ne: [] },
 //           });
 //           break;
 //         } else {
 //           boletines = await Boletin.find({
 //             estado: true, // Si deseas buscar solo boletines activos
-//             nroResolucion: { $in: [parametro] },
+//             nroRESOLUCION: { $in: [parametro] },
 //           });
 //           break;
 //         }
@@ -562,26 +567,26 @@ const agregarBoletin = async (req, res) => {
 //       });
 //     } else if ((tipo !== "undefined" || tipo !== "") && fecha !== "") {
 //       switch (tipo) {
-//         case "Decreto":
+//         case "DECRETO":
 //           boletines = await Boletin.find({
 //             estado: true, // Si deseas buscar solo boletines activos
-//             nroDecreto: { $exists: true, $ne: [] },
+//             nroDECRETO: { $exists: true, $ne: [] },
 //             fechaBoletin: fecha,
 //           });
 //           break;
 
-//         case "Ordenanza":
+//         case "ORDENANZA":
 //           boletines = await Boletin.find({
 //             estado: true, // Si deseas buscar solo boletines activos
-//             nroOrdenanza: { $exists: true, $ne: [] },
+//             nroORDENANZA: { $exists: true, $ne: [] },
 //             fechaBoletin: fecha,
 //           });
 //           break;
 
-//         case "Resolucion":
+//         case "RESOLUCION":
 //           boletines = await Boletin.find({
 //             estado: true, // Si deseas buscar solo boletines activos
-//             nroResolucion: { $exists: true, $ne: [] },
+//             nroRESOLUCION: { $exists: true, $ne: [] },
 //             fechaBoletin: fecha,
 //           });
 //           break;
@@ -642,27 +647,27 @@ const agregarBoletin = async (req, res) => {
 //       (nroNorma !== "" || nroNorma !== undefined)
 //     ) {
 //       switch (tipo) {
-//         case "Decreto":
+//         case "DECRETO":
 //           boletines = await Boletin.find({
 //             estado: true, // Si deseas buscar solo boletines activos
-//             nroDecreto: { $in: [nroNorma] },
+//             nroDECRETO: { $in: [nroNorma] },
 //             fechaBoletin: fecha,
 //           });
 
 //           break;
 
-//         case "Ordenanza":
+//         case "ORDENANZA":
 //           boletines = await Boletin.find({
 //             estado: true, // Si deseas buscar solo boletines activos
-//             nroOrdenanza: { $in: [nroNorma] },
+//             nroORDENANZA: { $in: [nroNorma] },
 //             fechaBoletin: fecha,
 //           });
 //           break;
 
-//         case "Resolucion":
+//         case "RESOLUCION":
 //           boletines = await Boletin.find({
 //             estado: true, // Si deseas buscar solo boletines activos
-//             nroResolucion: { $in: [nroNorma] },
+//             nroRESOLUCION: { $in: [nroNorma] },
 //             fechaBoletin: fecha,
 //           });
 
