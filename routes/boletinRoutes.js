@@ -11,6 +11,7 @@ const {
   getBuscarPorFechaMySql,
   getBuscarPorTodoMySql,
   obtenerArchivosDeUnBoletinMySql,
+  postBoletin,
   // getBoletin,
   // getBuscar,
   // getBuscarFecha,
@@ -42,7 +43,8 @@ router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql); //My
 // router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFecha);                     //mongo
 // router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodo);             //mongo
 
-router.post("/alta", agregarBoletin);
+// router.post("/alta", agregarBoletin);
+router.post("/alta", postBoletin);
 router.post("/subir-archivo", funcionMulter);
 
 module.exports = router;

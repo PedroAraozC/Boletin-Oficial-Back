@@ -349,8 +349,9 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
 //   }
 // };
 
-const agregarBoletin = async (req, res) => {
+const postBoletin = async (req, res) => {
   try {
+    const db = await conectarMySql();
     funcionMulter()(req, res, async (err) => {
       if (!req.file) {
         throw new CustomError("Error al cargar el archivo", 400);
@@ -359,67 +360,161 @@ const agregarBoletin = async (req, res) => {
       console.log(req.body, "16");
       console.log(req.file, "17");
 
-      let requestData = "";
+      // let requestData = "";
 
-      if (req.body.requestData === undefined) {
-        requestData = JSON.parse(req.body.requestData[1]);
-        console.log("hola");
-      } else {
-        requestData = JSON.parse(req.body.requestData);
-        console.log("adios");
-      }
+      // if (req.body.requestData === undefined) {
+      //   console.log("hola");
+      //   requestData = JSON.parse(req.body.requestData[1]);
+      // } else {
+      //   console.log("adios");
+      const requestData = JSON.parse(req.body.requestData);
+      console.log(requestData);
+
+      console.log(requestData.fechaBoletin, "f");
+      console.log(requestData.nroBoletin, "e");
+      console.log(requestData.fechaNormaBoletin, "d");
+      console.log(requestData.nroDecreto, "c");
+      console.log(requestData.nroOrdenanza, "b");
+      console.log(requestData.nroResolucion, "a");
+
+      // const [result] = await db.query(
+      //   "INSERT INTO boletin_prueba (nro_boletin, fecha_publicacion) VALUES (?, ?)",
+      //   [requestData.nroBoletin, requestData.fechaBoletin]
+      // );
+      // const nuevoID = result.insertId;
+
+      const [normas] = await db.query(`SELECT * norma WHERE habilita = 1`);
+      console.log(normas);
+      // await db.query(
+      //   "INSERT INTO boletin_contenido_prueba (id_boletin, id_norma, nro_norma, fecha_norma) VALUES (?, ?, ?, ?)",
+      //   [nuevoID, requestData.nronorma, requestData.fechaNormaBoletin]
+      // );
+
+      // }
 
       // console.log(values.JSON.parse(req.body.requestData[1]), "29");
-      console.log(req.body.requestData[1], "30");
-      console.log(requestData, "31");
+      // console.log(req.body.requestData[1], "30");
+      // console.log(requestData, "31");
 
-      const {
-        nroBoletin,
-        fechaBoletin,
-        nroDECRETO,
-        nroORDENANZA,
-        nroRESOLUCION,
-      } = requestData;
+      // const {
+      //   nroBoletin,
+      //   fechaBoletin,
+      //   nroDECRETO,
+      //   nroORDENANZA,
+      //   nroRESOLUCION,
+      // } = requestData;
 
-      const newBoletin = new Boletin({
-        nroBoletin,
-        fechaBoletin,
-        nroDECRETO,
-        nroORDENANZA,
-        nroRESOLUCION,
-      });
+      // const newBoletin = new Boletin({
+      //   nroBoletin,
+      //   fechaBoletin,
+      //   nroDECRETO,
+      //   nroORDENANZA,
+      //   nroRESOLUCION,
+      // });
 
-      const boletinGuardado = await newBoletin.save();
-      if (!req.file) {
-        throw new CustomError("File not provided", 400);
-      }
-      console.log(typeof req.file.fieldname, "51");
+      // const boletinGuardado = await newBoletin.save();
+      // if (!req.file) {
+      //   throw new CustomError("File not provided", 400);
+      // }
+      // console.log(typeof req.file.fieldname, "51");
 
-      const rutaArchivo = path.join(
-        `/home/boletin/${boletin.fecha_publicacion
-          .toISOString()
-          .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
-          .toISOString()
-          .slice(0, 10)}.pdf`,
-        // "C:\\Users\\Programadores\\Desktop\\Boletin-Oficial-Back\\archivoBoletin",
-        // "C:\\Users\\Administrador\\Desktop\\Ditec-Code\\boletin-oficial-back\\archivoBoletin",
-        req.file.filename
-      );
+      // const rutaArchivo = path.join(
+      //   `/home/boletin/${boletin.fecha_publicacion
+      //     .toISOString()
+      //     .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
+      //     .toISOString()
+      //     .slice(0, 10)}.pdf`,
+      //   // "C:\\Users\\Programadores\\Desktop\\Boletin-Oficial-Back\\archivoBoletin",
+      //   // "C:\\Users\\Administrador\\Desktop\\Ditec-Code\\boletin-oficial-back\\archivoBoletin",
+      //   req.file.filename
+      // );
 
-      const newArchivoBoletin = new ArchivoBoletin({
-        rutaArchivo,
-        archivoBoletin: boletinGuardado._id,
-      });
+      // const newArchivoBoletin = new ArchivoBoletin({
+      //   rutaArchivo,
+      //   archivoBoletin: boletinGuardado._id,
+      // });
 
-      await newArchivoBoletin.save();
+      // await newArchivoBoletin.save();
 
-      res.status(200).json({ message: "Se agregó un nuevo Boletín con éxito" });
+      // res.status(200).json({ message: "Se agregó un nuevo Boletín con éxito" });
     });
   } catch (error) {
     console.error("Error al agregar boletín:", error);
     res.status(500).json({ message: "Error al agregar Boletín" });
   }
 };
+
+// const agregarBoletin = async (req, res) => {
+//   try {
+//     funcionMulter()(req, res, async (err) => {
+//       if (!req.file) {
+//         throw new CustomError("Error al cargar el archivo", 400);
+//       }
+
+//       console.log(req.body, "16");
+//       console.log(req.file, "17");
+
+//       let requestData = "";
+
+//       if (req.body.requestData === undefined) {
+//         requestData = JSON.parse(req.body.requestData[1]);
+//         console.log("hola");
+//       } else {
+//         requestData = JSON.parse(req.body.requestData);
+//         console.log("adios");
+//       }
+
+//       // console.log(values.JSON.parse(req.body.requestData[1]), "29");
+//       console.log(req.body.requestData[1], "30");
+//       console.log(requestData, "31");
+
+//       const {
+//         nroBoletin,
+//         fechaBoletin,
+//         nroDECRETO,
+//         nroORDENANZA,
+//         nroRESOLUCION,
+//       } = requestData;
+
+//       const newBoletin = new Boletin({
+//         nroBoletin,
+//         fechaBoletin,
+//         nroDECRETO,
+//         nroORDENANZA,
+//         nroRESOLUCION,
+//       });
+
+//       const boletinGuardado = await newBoletin.save();
+//       if (!req.file) {
+//         throw new CustomError("File not provided", 400);
+//       }
+//       console.log(typeof req.file.fieldname, "51");
+
+//       const rutaArchivo = path.join(
+//         `/home/boletin/${boletin.fecha_publicacion
+//           .toISOString()
+//           .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
+//           .toISOString()
+//           .slice(0, 10)}.pdf`,
+//         // "C:\\Users\\Programadores\\Desktop\\Boletin-Oficial-Back\\archivoBoletin",
+//         // "C:\\Users\\Administrador\\Desktop\\Ditec-Code\\boletin-oficial-back\\archivoBoletin",
+//         req.file.filename
+//       );
+
+//       const newArchivoBoletin = new ArchivoBoletin({
+//         rutaArchivo,
+//         archivoBoletin: boletinGuardado._id,
+//       });
+
+//       await newArchivoBoletin.save();
+
+//       res.status(200).json({ message: "Se agregó un nuevo Boletín con éxito" });
+//     });
+//   } catch (error) {
+//     console.error("Error al agregar boletín:", error);
+//     res.status(500).json({ message: "Error al agregar Boletín" });
+//   }
+// };
 
 // const getBoletin = async (req, res) => {
 //   try {
@@ -685,7 +780,8 @@ const agregarBoletin = async (req, res) => {
 // };
 
 module.exports = {
-  agregarBoletin,
+  // agregarBoletin,
+  postBoletin,
   getBoletinesMySql,
   getBuscarNroMySql,
   getBuscarFechaMySql,
