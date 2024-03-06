@@ -43,9 +43,9 @@ router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql); //My
 // router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFecha);                     //mongo
 // router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodo);             //mongo
 
-// router.post("/alta", agregarBoletin);
-router.post("/alta", postBoletin);
+router.post("/alta", postBoletin);//MySql
 router.post("/subir-archivo", funcionMulter);
+// router.post("/alta", agregarBoletin);
 
 module.exports = router;
 

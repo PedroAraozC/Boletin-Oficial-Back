@@ -9,7 +9,7 @@ const getNormas = async (req, res) => {
     if (!db || !db.query) {
       throw new CustomError("Database connection or query function is missing", 500);
     }const [normas] = await db.query( "SELECT * FROM norma WHERE habilita = 1");
-    console.log([normas])
+    // console.log([normas])
     res.json(normas);
   } catch (error) {
     console.error("Error al buscar norma:", error);
