@@ -5,21 +5,19 @@ const fs = require("fs");
 const funcionMulter = () => {
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      // Construir la ruta completa correctamente
       const uploadPath = path.join(__dirname, "..", "uploads", "boletin");
       fs.mkdirSync(uploadPath, { recursive: true }); // Crear carpeta si no existe
       cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
-      const pingo = JSON.parse(req.body.requestData);
-      
-      if (!pingo.nroBoletin || !pingo.fechaBoletin) {
-        // Si alguno de los valores falta, llamar al callback con un error
+      const boletin = JSON.parse(req.body.requestData);
+
+      if (!boletin.nroBoletin || !boletin.fechaBoletin) {
         return cb(
           new Error("Falta información para construir el nombre del archivo")
         );
       }
-      const nombreArchivo = `bol_${pingo.nroBoletin}_${pingo.fechaBoletin}.pdf`;
+      const nombreArchivo = `bol_${boletin.nroBoletin}_${boletin.fechaBoletin}.pdf`;
       cb(null, nombreArchivo);
     },
   });
