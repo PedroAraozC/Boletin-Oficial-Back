@@ -23,6 +23,20 @@ const getBoletinesMySql = async (req, res) => {
   }
 };
 
+const getOrigen = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    if (!db || !db.query) {
+      throw new CustomError("Database connection or query function is missing", 500);
+    }const [origen] = await db.query( "SELECT * FROM origen WHERE habilita = 1");
+    console.log([origen])
+    res.json(origen);
+  } catch (error) {
+    console.error("Error al buscar origen:", error);
+    res.status(500).json({ message: "Error al buscar origen" });
+  }
+};
+
 const getBuscarNroMySql = async (req, res) => {
   const { nroBoletin } = req.params;
   try {
@@ -694,6 +708,7 @@ module.exports = {
   getBuscarPorFechaMySql,
   getBuscarPorTodoMySql,
   obtenerArchivosDeUnBoletinMySql,
+  getOrigen,
   // getBoletin,
   // getBuscar,
   // getBuscarFecha,
