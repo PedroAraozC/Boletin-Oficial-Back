@@ -1,9 +1,3 @@
-// const Boletin = require("../models/boletin");
-// const path = require("path");
-// const ArchivoBoletin = require("../models//archivoBoletin");
-// const multer = require("multer");
-// const fs = require("fs");
-// const archivoBoletin = require("../models//archivoBoletin");
 const CustomError = require("../utils/customError");
 const { conectarMySql } = require("../config/dbMySql");
 const { conectarSFTP } = require("../config/dbwinscp");
@@ -17,9 +11,31 @@ const getBoletinesMySql = async (req, res) => {
       "SELECT * FROM boletin WHERE habilita = 1"
     );
     res.json(boletines);
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines:", error);
     res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
+
+const getOrigen = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    if (!db || !db.query) {
+      throw new CustomError(
+        "Database connection or query function is missing",
+        500
+      );
+    }
+    const [origen] = await db.query("SELECT * FROM origen WHERE habilita = 1");
+    console.log([origen]);
+    res.json(origen);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar origen:", error);
+    res.status(500).json({ message: "Error al buscar origen" });
   }
 };
 
@@ -31,7 +47,9 @@ const getBuscarNroMySql = async (req, res) => {
       `SELECT * FROM boletin WHERE nro_boletin = ${nroBoletin} AND habilita = 1`
     );
     res.json(boletines);
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
   }
@@ -45,7 +63,9 @@ const getBuscarFechaMySql = async (req, res) => {
       `SELECT * FROM boletin WHERE fecha_publicacion = '${fechaBoletin}' AND habilita = 1`
     );
     res.json(boletines);
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
   }
@@ -67,7 +87,9 @@ const getBuscarNroYFechaMySql = async (req, res) => {
       );
       res.json(boletines);
     }
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
   }
@@ -155,7 +177,9 @@ const getBuscarPorTipoMySql = async (req, res) => {
     }
 
     res.json(boletines);
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
   }
@@ -217,7 +241,9 @@ const getBuscarPorFechaMySql = async (req, res) => {
     }
 
     res.json(boletines);
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
   }
@@ -284,7 +310,9 @@ const getBuscarPorTodoMySql = async (req, res) => {
     }
 
     res.json(boletines);
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
   }
@@ -307,6 +335,7 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
     res.send(fileBuffer);
     await sftp.end();
   } catch (error) {
+    await sftp.end();
     console.error("Error al obtener archivos de un boletín:", error);
     res.status(500).json({ message: "Error al obtener archivos del boletín" });
   }
@@ -332,6 +361,7 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
   if (boletines.length > 0) {
     return boletines[0];
   } else {
+    await db.end();
     console.error("Error al obtener archivos de un boletín:", error);
     throw new Error("No se encontraron boletines para el ID especificado");
   }
@@ -361,13 +391,13 @@ const postBoletin = async (req, res) => {
         console.log("adios");
       }
       console.log(requestData);
-
       console.log(requestData.fechaBoletin, "f");
       console.log(requestData.nroBoletin, "e");
       console.log(requestData.fechaNormaBoletin, "d");
       console.log(requestData.nroDecreto, "c");
       console.log(requestData.nroOrdenanza, "b");
       console.log(requestData.nroResolucion, "a");
+      console.log(requestData.origen, "a");
 
       const [result] = await db.query(
         "INSERT INTO boletin_prueba (nro_boletin, fecha_publicacion) VALUES (?, ?)",
@@ -407,7 +437,6 @@ const postBoletin = async (req, res) => {
           );
         }
       }
-
       //VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
       const sftp = await conectarSFTP();
 
@@ -417,21 +446,17 @@ const postBoletin = async (req, res) => {
         );
       }
       //CAMBIAR RUTA SERVIDOR PRODUCCION
-      const rutaArchivo = `/home/boletin/${requestData.fechaBoletin.slice(
-        0,
-        4
-      )}/bol_${requestData.nroBoletin}_${requestData.fechaBoletin.slice(
-        0,
-        10
-      )}.pdf`;
+      const rutaArchivo = `/home/boletin/${requestData.fechaBoletin.slice(0,4)}/bol_${requestData.nroBoletin}_${requestData.fechaBoletin.slice(0,10)}.pdf`;
 
       await sftp.put(req.file.path, rutaArchivo);
       await sftp.end();
+      await db.end();
 
       console.log("El archivo se ha guardado correctamente en", rutaArchivo);
       res.status(200).json({ message: "Se agregó un nuevo Boletín con éxito" });
     });
   } catch (error) {
+    await db.end();
     console.error("Error al agregar boletín:", error);
     res.status(500).json({ message: "Error al agregar Boletín" });
   }
@@ -447,4 +472,5 @@ module.exports = {
   getBuscarPorFechaMySql,
   getBuscarPorTodoMySql,
   obtenerArchivosDeUnBoletinMySql,
+  getOrigen,
 };

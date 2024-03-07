@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const { funcionMulter } = require("../middlewares/multerStorage");
 const {
+  getOrigen,
   postBoletin,
   getBoletinesMySql,
   getBuscarNroMySql,
@@ -25,6 +26,7 @@ router.get(
 router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFechaMySql); //MySql
 router.get("/buscarPorTipo/:tipo/:parametro", getBuscarPorTipoMySql); //MySql
 router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql); //MySql
+router.get("/listarOrigen", getOrigen);
 
 router.post("/alta", postBoletin); //MySql
 router.post("/subir-archivo", funcionMulter);
