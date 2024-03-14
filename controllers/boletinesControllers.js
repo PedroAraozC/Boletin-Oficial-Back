@@ -367,56 +367,56 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
   }
 };
 
-// Función para desglosar el arrayContenido y crear arrays separados por id_norma
-const procesarDatos = (requestData) => {
-  // Parsear el JSON para obtener el objeto requestData
-  const { arrayContenido } = JSON.parse(requestData);
+// // Función para desglosar el arrayContenido y crear arrays separados por id_norma
+// const procesarDatos = (requestData) => {
+//   // Parsear el JSON para obtener el objeto requestData
+//   const { arrayContenido } = JSON.parse(requestData);
 
-  // Objeto para almacenar arrays separados por id_norma
-  const arraysSeparados = {};
+//   // Objeto para almacenar arrays separados por id_norma
+//   const arraysSeparados = {};
 
-  // Iterar sobre cada elemento del arrayContenido
-  arrayContenido.forEach((elemento) => {
-    const { norma, numero, origen, año } = elemento;
-    const { id_norma } = norma;
+//   // Iterar sobre cada elemento del arrayContenido
+//   arrayContenido.forEach((elemento) => {
+//     const { norma, numero, origen, año } = elemento;
+//     const { id_norma } = norma;
 
-    // Verificar si el id_norma ya existe como clave en arraysSeparados
-    if (id_norma in arraysSeparados) {
-      // Si existe, agregar el contenido al array correspondiente
-      arraysSeparados[id_norma].push({ norma, numero, origen, año });
-    } else {
-      // Si no existe, crear un nuevo array con el id_norma como clave
-      arraysSeparados[id_norma] = [{ norma, numero, origen, año }];
-    }
-  });
+//     // Verificar si el id_norma ya existe como clave en arraysSeparados
+//     if (id_norma in arraysSeparados) {
+//       // Si existe, agregar el contenido al array correspondiente
+//       arraysSeparados[id_norma].push({ norma, numero, origen, año });
+//     } else {
+//       // Si no existe, crear un nuevo array con el id_norma como clave
+//       arraysSeparados[id_norma] = [{ norma, numero, origen, año }];
+//     }
+//   });
 
-  return arraysSeparados;
-};
+//   return arraysSeparados;
+// };
 
-// Datos recibidos
-const datosRecibidos = {
-  requestData:
-    '{"nroBoletin":5478,"fechaPublicacion":"2025-01-01","habilita":true,"arrayContenido":[{"norma":{"id_norma":2,"tipo_norma":"ORDENANZA","habilita":1},"numero":"54657","origen":{"id_origen":5,"nombre_origen":"SOP","habilita":1},"año":"2024-03-01"},{"norma":{"id_norma":3,"tipo_norma":"RESOLUCION","habilita":1},"numero":"6547","origen":{"id_origen":4,"nombre_origen":"HCD","habilita":1},"año":"2024-03-01"},{"norma":{"id_norma":1,"tipo_norma":"DECRETO","habilita":1},"numero":"4577","origen":{"id_origen":6,"nombre_origen":"SSP","habilita":1},"año":"2024-03-23"},{"norma":{"id_norma":1,"tipo_norma":"DECRETO","habilita":1},"numero":"7984","origen":{"id_origen":6,"nombre_origen":"SSP","habilita":1},"año":"2024-03-11"},{"norma":{"id_norma":2,"tipo_norma":"ORDENANZA","habilita":1},"numero":"2134","origen":{"id_origen":10,"nombre_origen":"FM","habilita":1},"año":"2024-03-22"}]}',
-};
+// // Datos recibidos
+// const datosRecibidos = {
+//   requestData:
+//     '{"nroBoletin":5478,"fechaPublicacion":"2025-01-01","habilita":true,"arrayContenido":[{"norma":{"id_norma":2,"tipo_norma":"ORDENANZA","habilita":1},"numero":"54657","origen":{"id_origen":5,"nombre_origen":"SOP","habilita":1},"año":"2024-03-01"},{"norma":{"id_norma":3,"tipo_norma":"RESOLUCION","habilita":1},"numero":"6547","origen":{"id_origen":4,"nombre_origen":"HCD","habilita":1},"año":"2024-03-01"},{"norma":{"id_norma":1,"tipo_norma":"DECRETO","habilita":1},"numero":"4577","origen":{"id_origen":6,"nombre_origen":"SSP","habilita":1},"año":"2024-03-23"},{"norma":{"id_norma":1,"tipo_norma":"DECRETO","habilita":1},"numero":"7984","origen":{"id_origen":6,"nombre_origen":"SSP","habilita":1},"año":"2024-03-11"},{"norma":{"id_norma":2,"tipo_norma":"ORDENANZA","habilita":1},"numero":"2134","origen":{"id_origen":10,"nombre_origen":"FM","habilita":1},"año":"2024-03-22"}]}',
+// };
 
-// Llamar a la función procesarDatos con los datos recibidos
-const arraysSeparados = procesarDatos(datosRecibidos.requestData);
+// // Llamar a la función procesarDatos con los datos recibidos
+// const arraysSeparados = procesarDatos(datosRecibidos.requestData);
 
-// Mostrar el resultado en la consola
-console.log(arraysSeparados);
+// // Mostrar el resultado en la consola
+// console.log(arraysSeparados);
 
 const postBoletin = async (req, res) => {
   try {
     const db = await conectarMySql();
     funcionMulter()(req, res, async (err) => {
-      console.log(req.body, "356");
+      // console.log(req.body, "356");
       console.log(req.file, "357");
 
       if (!req.file) {
         throw new CustomError("Error al cargar el archivo", 400);
       }
 
-      console.log(req.body, "16");
+      // console.log(req.body, "16");
       console.log(req.file, "17");
 
       let requestData = "";
@@ -428,14 +428,7 @@ const postBoletin = async (req, res) => {
         requestData = JSON.parse(req.body.requestData);
         console.log("adios");
       }
-      console.log(requestData);
-      console.log(requestData.fechaPublicacion, "f");
-      console.log(requestData.nroBoletin, "e");
-      console.log(requestData.fechaNormaBoletin, "d");
-      console.log(requestData.nroDecreto, "c");
-      console.log(requestData.nroOrdenanza, "b");
-      console.log(requestData.nroResolucion, "a");
-      console.log(requestData.origen, "a");
+      // console.log(requestData, "g");
 
       const [result] = await db.query(
         "INSERT INTO boletin_prueba (nro_boletin, fecha_publicacion, habilita) VALUES (?, ?, ?)",
@@ -451,16 +444,18 @@ const postBoletin = async (req, res) => {
       // console.log(normas);
 
       for (const contenido of requestData.arrayContenido) {
+        // console.log(contenido, "contenido");
         const { norma, numero, origen, año } = contenido;
         const idNorma = norma.id_norma;
         const idOrigen = origen.id_origen;
+        // console.log(nuevoID, idNorma, numero, idOrigen, año, "458");
         await db.query(
-          "INSERT INTO contenido_boletin_prueba (id_boletin, id_nomra, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?)",
+          "INSERT INTO contenido_boletin_prueba (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
           [nuevoID, idNorma, numero, idOrigen, año]
         );
       }
 
-      //VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
+      // VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
       const sftp = await conectarSFTP();
 
       if (!sftp || !sftp.sftp) {
@@ -469,10 +464,17 @@ const postBoletin = async (req, res) => {
         );
       }
       //CAMBIAR RUTA SERVIDOR PRODUCCION
-      const rutaArchivo = `/home/boletin/${requestData.fechaBoletin.slice(
+      // const rutaArchivo = `C:\\Users\\Programadores\\Desktop\\${requestData.fechaPublicacion.slice(
+      //   0,
+      //   4
+      // )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
+      //   0,
+      //   10
+      // )}.pdf`;
+      const rutaArchivo = `/home/pedro/${requestData.fechaPublicacion.slice(
         0,
         4
-      )}/bol_${requestData.nroBoletin}_${requestData.fechaBoletin.slice(
+      )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
         0,
         10
       )}.pdf`;
