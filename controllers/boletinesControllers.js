@@ -19,6 +19,44 @@ const getBoletinesMySql = async (req, res) => {
   }
 };
 
+const getContenido = async (req, res) => {
+  try {
+    const db = await conectarMySql(); 
+    const [contenido_boletin] = await db.query(
+     
+      "SELECT * FROM contenido_boletin"
+    );
+    res.json(contenido_boletin);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar contenido:", error);
+    res.status(500).json({ message: "Error al buscar contenido" });
+  }
+};
+
+const putContenido = async (req, res) => {
+  try {
+    const { id_contenido_boletin, id_boletin, id_norma, nro_norma, id_origen, fecha_norma } = req.body;
+    const db = await conectarMySql();
+
+    // Log para verificar los valores de los parámetros
+    console.log('Valores de los parámetros:', id_contenido_boletin, id_boletin, id_norma, nro_norma, id_origen, fecha_norma);
+
+    // Ejecutar la consulta SQL
+    await db.query(
+      'UPDATE contenido_boletin SET id_boletin = ?, id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ? WHERE id_contenido_boletin = ?',
+      [id_boletin, id_norma, nro_norma, id_origen, fecha_norma.slice(0, 10), id_contenido_boletin]
+    );
+
+    // Respuesta exitosa
+    res.status(200).json({ message: 'Contenido de boletín actualizado con éxito' });
+    await db.end();
+  } catch (error) {
+    console.error('Error al actualizar contenido de boletín:', error);
+    res.status(500).json({ message: 'Error al actualizar contenido de boletín' });
+  }
+};
 
 const getBoletinesListado = async (req, res) => {
   try {
@@ -540,5 +578,5 @@ module.exports = {
   getBuscarPorTodoMySql,
   obtenerArchivosDeUnBoletinMySql,
   getOrigen,
-  putBoletinesMySql,postBoletin, postBoletinGuardar,getBoletinesListado,
+  putBoletinesMySql,postBoletin, postBoletinGuardar,getBoletinesListado, getContenido, putContenido,
 };

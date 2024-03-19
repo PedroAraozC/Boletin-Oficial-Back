@@ -10,7 +10,7 @@ const {
   getBuscarPorTodoMySql,
   getBuscarPorFechaMySql,
   getBuscarNroYFechaMySql,
-  obtenerArchivosDeUnBoletinMySql,putBoletinesMySql, postBoletinGuardar, getBoletinesListado,
+  obtenerArchivosDeUnBoletinMySql,putBoletinesMySql, postBoletinGuardar, getBoletinesListado, getContenido,putContenido,
 } = require("../controllers/boletinesControllers");
 
 const router = Router();
@@ -24,6 +24,8 @@ router.get(
   "/buscarNroYFecha/:nroBoletin/:fechaBoletin",
   getBuscarNroYFechaMySql
 ); //MySql
+router.get("/listarContenido", getContenido); //MySql
+
 router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFechaMySql); //MySql
 router.get("/buscarPorTipo/:tipo/:parametro", getBuscarPorTipoMySql); //MySql
 router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql); //MySql
@@ -33,5 +35,6 @@ router.post("/alta", postBoletin); //MySql
 router.post("/subir-archivo", funcionMulter);
 router.post("/guardar", postBoletinGuardar);
 router.put("/editar", putBoletinesMySql);
+router.put("/traer", putContenido);
 
 module.exports = router;
