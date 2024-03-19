@@ -23,8 +23,8 @@ router.get(
   "/buscarNroYFecha/:nroBoletin/:fechaBoletin",
   getBuscarNroYFechaMySql
 ); //MySql
-router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFechaMySql); //MySql
-router.get("/buscarPorTipo/:tipo/:parametro", getBuscarPorTipoMySql); //MySql
+router.get("/buscarPorFecha/:fecha/:idNorma", getBuscarPorFechaMySql); //MySql
+router.get("/buscarPorTipo/:idNorma/:parametro", getBuscarPorTipoMySql); //MySql
 router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql); //MySql
 router.get("/listarOrigen", getOrigen);
 
