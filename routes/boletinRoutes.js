@@ -1,13 +1,16 @@
 const { Router } = require("express");
 const { funcionMulter } = require("../middlewares/multerStorage");
 const {
-  getOrigen,
   postBoletin,
+  // postBoletinGuardar,
+  putBoletinesMySql,
+  getOrigen,
   getBoletinesMySql,
   getBuscarNroMySql,
   getBuscarFechaMySql,
-  getBuscarPorTipoMySql,
+  getBoletinesListado,
   getBuscarPorTodoMySql,
+  getBuscarPorTipoMySql,
   getBuscarPorFechaMySql,
   getBuscarNroYFechaMySql,
   obtenerArchivosDeUnBoletinMySql,
@@ -16,6 +19,7 @@ const {
 const router = Router();
 
 router.get("/listar", getBoletinesMySql); //MySql
+router.get("/listado", getBoletinesListado); //MySql
 router.get("/buscar/:nroBoletin", getBuscarNroMySql); //MySql
 router.get("/buscarFecha/:fechaBoletin", getBuscarFechaMySql); //MySql
 router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletinMySql); //MySql
@@ -29,6 +33,8 @@ router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql); //My
 router.get("/listarOrigen", getOrigen);
 
 router.post("/alta", postBoletin); //MySql
-router.post("/subir-archivo", funcionMulter);
+router.post("/subir-archivo", funcionMulter); //MySql
+// router.post("/guardar", postBoletinGuardar); //MySql
+router.put("/editar", putBoletinesMySql); //MySql
 
 module.exports = router;
