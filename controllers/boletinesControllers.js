@@ -22,10 +22,12 @@ const getBoletinesMySql = async (req, res) => {
 const getBoletinesListado = async (req, res) => {
   try {
     const db = await conectarMySql();
-    const [boletines] = await db.query(
-      "SELECT * FROM boletin"
-    );
-    console.log(boletines)
+    const [boletines] = await db.query("SELECT * FROM boletin_prueba");
+    // const [contenidoBoletines] = await db.query(
+    //   "SELECT * FROM contenido_boletin_prueba"
+    // );
+    // const data ={ boletines: boletines, contenidoBoletines: contenidoBoletines}
+    // console.log(data)
     res.json(boletines);
     await db.end();
   } catch (error) {
@@ -35,6 +37,23 @@ const getBoletinesListado = async (req, res) => {
   }
 };
 
+const getBoletinesContenidoListado = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    // const [boletines] = await db.query(
+    //   "SELECT * FROM boletin_prueba"
+    // );
+    const [contenidoBoletines] = await db.query(
+      "SELECT * FROM contenido_boletin_prueba"
+    );
+    res.json(contenidoBoletines);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar boletines:", error);
+    res.status(500).json({ message: "Error al buscar boletines en listado" });
+  }
+};
 
 const getOrigen = async (req, res) => {
   try {
@@ -301,7 +320,6 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
 //     const db = await conectarMySql();
 //     const {id_boletin, nro_boletin, fecha_publicacion, habilita } = req.body;
 
-
 //     const [result] = await db.query(
 //       "INSERT INTO boletin id_boletin = ?, nro_boletin = ?, fecha_publicacion = ?, habilita = ? ",
 //       [id_boletin,nro_boletin, fecha_publicacion, habilita]
@@ -318,27 +336,39 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
 //   }
 // };
 
-
 const putBoletinesMySql = async (req, res) => {
   try {
     const db = await conectarMySql();
     console.log(req.body);
-    const { id_boletin, nro_boletin, fecha_publicacion, habilita } = req.body;
-    
+    const { id_boletin, nro_boletin, fecha_publicacion, habilita, normasAgregadasEditar } = req.body;
+
     // Log para verificar los valores de los parámetros
-    console.log('Valores de los parámetros:', id_boletin, nro_boletin, fecha_publicacion, habilita);
-    
+    // console.log(
+    //   "Valores de los parámetros:",
+    //   id_boletin,
+    //   nro_boletin,
+    //   fecha_publicacion,
+    //   habilita
+    // );
+
     // Ejecutar la consulta SQL
     await db.query(
-      'UPDATE boletin SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?',
+      "UPDATE boletin_prueba SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
       [nro_boletin, fecha_publicacion.slice(0, 10), habilita, id_boletin]
     );
 
-    // Respuesta exitosa
-    res.status(200).json({ message: 'Boletín actualizado con éxito' });
+    for (const contenido of normasAgregadasEditar) {
+      const { norma, numero, origen, año } = contenido;
+
+      await db.query(
+        "UPDATE contenido_boletin_prueba SET id_norma=?, nro_norma=?, id_origen=?, fecha_norma=? WHERE id_boletin = ?",
+        [norma, numero, origen, año.slice(0, 10), id_boletin]
+      );
+    }
+    res.status(200).json({ message: "Boletín actualizado con éxito" });
   } catch (error) {
-    console.error('Error al actualizar boletín:', error);
-    res.status(500).json({ message: 'Error al actualizar boletín' });
+    console.error("Error al actualizar boletín:", error);
+    res.status(500).json({ message: "Error al actualizar boletín" });
   }
 };
 
@@ -346,26 +376,16 @@ const postBoletin = async (req, res) => {
   try {
     const db = await conectarMySql();
     funcionMulter()(req, res, async (err) => {
-      // console.log(req.body, "356");
-      // console.log(req.file, "357");
-
       if (!req.file) {
         throw new CustomError("Error al cargar el archivo", 400);
       }
-
-      // console.log(req.body, "16");
-      // console.log(req.file, "17");
-
       let requestData = "";
 
       if (req.body.requestData === undefined) {
         requestData = JSON.parse(req.body.requestData[1]);
-        // console.log("hola");
       } else {
         requestData = JSON.parse(req.body.requestData);
-        // console.log("adios");
       }
-      // console.log(requestData, "g");
 
       const [result] = await db.query(
         "INSERT INTO boletin (nro_boletin, fecha_publicacion, habilita) VALUES (?, ?, ?)",
@@ -378,14 +398,11 @@ const postBoletin = async (req, res) => {
       const nuevoID = result.insertId;
 
       // const [normas] = await db.query(`SELECT * FROM norma WHERE habilita = 1`);
-      // console.log(normas);
 
       for (const contenido of requestData.arrayContenido) {
-        // console.log(contenido, "contenido");
         const { norma, numero, origen, año } = contenido;
         const idNorma = norma.id_norma;
         const idOrigen = origen.id_origen;
-        // console.log(nuevoID, idNorma, numero, idOrigen, año, "458");
         await db.query(
           "INSERT INTO contenido_boletin (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
           [nuevoID, idNorma, numero, idOrigen, año]
@@ -445,5 +462,6 @@ module.exports = {
   getBuscarPorTipoMySql,
   getBuscarPorFechaMySql,
   getBuscarNroYFechaMySql,
+  getBoletinesContenidoListado,
   obtenerArchivosDeUnBoletinMySql,
 };
