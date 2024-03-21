@@ -19,6 +19,61 @@ const getBoletinesMySql = async (req, res) => {
   }
 };
 
+const getContenido = async (req, res) => {
+  try {
+    const db = await conectarMySql(); 
+    const [contenido_boletin] = await db.query(
+     
+      "SELECT * FROM contenido_boletin"
+    );
+    res.json(contenido_boletin);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar contenido:", error);
+    res.status(500).json({ message: "Error al buscar contenido" });
+  }
+};
+
+const putContenido = async (req, res) => {
+  try {
+    const { id_contenido_boletin, id_boletin, id_norma, nro_norma, id_origen, fecha_norma } = req.body;
+    const db = await conectarMySql();
+
+    // Log para verificar los valores de los parámetros
+    console.log('Valores de los parámetros:', id_contenido_boletin, id_boletin, id_norma, nro_norma, id_origen, fecha_norma);
+
+    // Ejecutar la consulta SQL
+    await db.query(
+      'UPDATE contenido_boletin SET id_boletin = ?, id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ? WHERE id_contenido_boletin = ?',
+      [id_boletin, id_norma, nro_norma, id_origen, fecha_norma.slice(0, 10), id_contenido_boletin]
+    );
+
+    // Respuesta exitosa
+    res.status(200).json({ message: 'Contenido de boletín actualizado con éxito' });
+    await db.end();
+  } catch (error) {
+    console.error('Error al actualizar contenido de boletín:', error);
+    res.status(500).json({ message: 'Error al actualizar contenido de boletín' });
+  }
+};
+
+const getBoletinesListado = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    const [boletines] = await db.query(
+      "SELECT * FROM boletin"
+    );
+    res.json(boletines);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar boletines:", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
+
+
 const getOrigen = async (req, res) => {
   try {
     const db = await conectarMySql();
@@ -367,6 +422,53 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
   }
 };
 
+const postBoletinGuardar = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    const {id_boletin, nro_boletin, fecha_publicacion, habilita } = req.body;
+
+
+    const [result] = await db.query(
+      "INSERT INTO boletin id_boletin = ?, nro_boletin = ?, fecha_publicacion = ?, habilita = ? ",
+      [id_boletin,nro_boletin, fecha_publicacion, habilita]
+    );
+
+    console.log('Cambios guardados correctamente:', result);
+
+    // Puedes enviar una respuesta al frontend si lo necesitas
+    res.status(200).json({ message: 'Cambios guardados correctamente' });
+  } catch (error) {
+    console.error('Error al guardar cambios:', error);
+    // Puedes enviar un código de error y un mensaje al frontend si lo necesitas
+    res.status(500).json({ error: 'Error al guardar cambios' });
+  }
+};
+
+const putBoletinesMySql = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    console.log(req.body);
+    const { id_boletin, nro_boletin, fecha_publicacion, habilita } = req.body;
+    
+    // Log para verificar los valores de los parámetros
+    console.log('Valores de los parámetros:', id_boletin, nro_boletin, fecha_publicacion, habilita);
+    
+    // Ejecutar la consulta SQL
+    await db.query(
+      'UPDATE boletin SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?',
+      [nro_boletin, fecha_publicacion.slice(0, 10), habilita, id_boletin]
+    );
+
+    // Respuesta exitosa
+    res.status(200).json({ message: 'Boletín actualizado con éxito' });
+  } catch (error) {
+    console.error('Error al actualizar boletín:', error);
+    res.status(500).json({ message: 'Error al actualizar boletín' });
+  }
+};
+
+
+
 const postBoletin = async (req, res) => {
   try {
     const db = await conectarMySql();
@@ -462,6 +564,9 @@ const postBoletin = async (req, res) => {
   }
 };
 
+
+
+
 module.exports = {
   postBoletin,
   getBoletinesMySql,
@@ -473,4 +578,5 @@ module.exports = {
   getBuscarPorTodoMySql,
   obtenerArchivosDeUnBoletinMySql,
   getOrigen,
+  putBoletinesMySql,postBoletin, postBoletinGuardar,getBoletinesListado, getContenido, putContenido,
 };
