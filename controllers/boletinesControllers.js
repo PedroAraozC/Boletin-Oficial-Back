@@ -44,7 +44,7 @@ const getBoletinesContenidoListado = async (req, res) => {
     //   "SELECT * FROM boletin_prueba"
     // );
     const [contenidoBoletines] = await db.query(
-      "SELECT * FROM contenido_boletin_prueba"
+      "SELECT * FROM contenido_boletin_prueba WHERE habilita = 1"
     );
     res.json(contenidoBoletines);
     await db.end();
@@ -340,7 +340,13 @@ const putBoletinesMySql = async (req, res) => {
   try {
     const db = await conectarMySql();
     console.log(req.body);
-    const { id_boletin, nro_boletin, fecha_publicacion, habilita, normasAgregadasEditar } = req.body;
+    const {
+      id_boletin,
+      nro_boletin,
+      fecha_publicacion,
+      habilita,
+      normasAgregadasEditar,
+    } = req.body;
 
     // Log para verificar los valores de los parámetros
     // console.log(
@@ -358,12 +364,19 @@ const putBoletinesMySql = async (req, res) => {
     );
 
     for (const contenido of normasAgregadasEditar) {
-      const { norma, numero, origen, año } = contenido;
-
-      await db.query(
-        "UPDATE contenido_boletin_prueba SET id_norma=?, nro_norma=?, id_origen=?, fecha_norma=? WHERE id_boletin = ?",
-        [norma, numero, origen, año.slice(0, 10), id_boletin]
-      );
+      const { norma, numero, origen, año, habilita, id_contenido_boletin } =
+        contenido;
+      if (id_contenido_boletin > 0) {
+        await db.query(
+          "UPDATE contenido_boletin_prueba SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_boletin = ?",
+          [norma, numero, origen, año.slice(0, 10),habilita, id_boletin]
+        );
+      } else if (id_contenido_boletin < 0) {
+        await db.query(
+          "INSERT INTO contenido_boletin_prueba (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
+          [id_boletin, norma, numero, origen, año.slice(0, 10)]
+        );
+      }
     }
     res.status(200).json({ message: "Boletín actualizado con éxito" });
   } catch (error) {
