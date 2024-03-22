@@ -349,13 +349,14 @@ const putBoletinesMySql = async (req, res) => {
     } = req.body;
 
     // Log para verificar los valores de los parámetros
-    // console.log(
-    //   "Valores de los parámetros:",
-    //   id_boletin,
-    //   nro_boletin,
-    //   fecha_publicacion,
-    //   habilita
-    // );
+    console.log(
+      "Valores de los parámetros:",
+      id_boletin,
+      nro_boletin,
+      fecha_publicacion,
+      habilita,
+      normasAgregadasEditar
+    );
 
     // Ejecutar la consulta SQL
     await db.query(
@@ -366,10 +367,19 @@ const putBoletinesMySql = async (req, res) => {
     for (const contenido of normasAgregadasEditar) {
       const { norma, numero, origen, año, habilita, id_contenido_boletin } =
         contenido;
+      console.log(
+        norma,
+        numero,
+        origen,
+        año,
+        habilita,
+        id_contenido_boletin,
+        "contenidoBoletin"
+      );
       if (id_contenido_boletin > 0) {
         await db.query(
-          "UPDATE contenido_boletin_prueba SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_boletin = ?",
-          [norma, numero, origen, año.slice(0, 10),habilita, id_boletin]
+          "UPDATE contenido_boletin_prueba SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
+          [norma, numero, origen, año.slice(0, 10), habilita,id_contenido_boletin, id_boletin]
         );
       } else if (id_contenido_boletin < 0) {
         await db.query(
