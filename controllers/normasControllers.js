@@ -20,11 +20,11 @@ const getNormas = async (req, res) => {
 const putNormas = async (req, res) => {
   try {
     const db = await conectarMySql();
-    console.log(req.body);
+    // console.log(req.body);
     const { id_norma, tipo_norma, habilita } = req.body;
     
     // Log para verificar los valores de los parámetros
-    console.log('Valores de los parámetros:', id_norma, tipo_norma, habilita);
+    // console.log('Valores de los parámetros:', id_norma, tipo_norma, habilita);
     
     // Ejecutar la consulta SQL
     await db.query(

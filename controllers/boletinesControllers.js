@@ -339,7 +339,7 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
 const putBoletinesMySql = async (req, res) => {
   try {
     const db = await conectarMySql();
-    console.log(req.body);
+    // console.log(req.body);
     const {
       id_boletin,
       nro_boletin,
@@ -349,14 +349,14 @@ const putBoletinesMySql = async (req, res) => {
     } = req.body;
 
     // Log para verificar los valores de los parámetros
-    console.log(
-      "Valores de los parámetros:",
-      id_boletin,
-      nro_boletin,
-      fecha_publicacion,
-      habilita,
-      normasAgregadasEditar
-    );
+    // console.log(
+    //   "Valores de los parámetros:",
+    //   id_boletin,
+    //   nro_boletin,
+    //   fecha_publicacion,
+    //   habilita,
+    //   normasAgregadasEditar
+    // );
 
     // Ejecutar la consulta SQL
     await db.query(
@@ -367,15 +367,15 @@ const putBoletinesMySql = async (req, res) => {
     for (const contenido of normasAgregadasEditar) {
       const { norma, numero, origen, año, habilita, id_contenido_boletin } =
         contenido;
-      console.log(
-        norma,
-        numero,
-        origen,
-        año,
-        habilita,
-        id_contenido_boletin,
-        "contenidoBoletin"
-      );
+      // console.log(
+      //   norma,
+      //   numero,
+      //   origen,
+      //   año,
+      //   habilita,
+      //   id_contenido_boletin,
+      //   "contenidoBoletin"
+      // );
       if (id_contenido_boletin > 0) {
         await db.query(
           "UPDATE contenido_boletin_prueba SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
