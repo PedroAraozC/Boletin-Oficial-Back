@@ -16,9 +16,6 @@ const {
 
   getBoletinesContenidoListado,
   obtenerArchivosDeUnBoletinMySql,
-
-   postBoletinGuardar, getContenido,putContenido,
-  
 } = require("../controllers/boletinesControllers");
 
 const router = Router();
@@ -35,20 +32,12 @@ router.get(
   "/buscarNroYFecha/:nroBoletin/:fechaBoletin",
   getBuscarNroYFechaMySql
 ); //MySql
-// router.get("/listarContenido", getContenido); //MySql
-
-router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFechaMySql); //MySql
-router.get("/buscarPorTipo/:tipo/:parametro", getBuscarPorTipoMySql); //MySql
 router.get("/buscarPorFecha/:fecha/:idNorma", getBuscarPorFechaMySql); //MySql
 router.get("/buscarPorTipo/:idNorma/:parametro", getBuscarPorTipoMySql); //MySql
 router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql); //MySql
 router.get("/listarOrigen", getOrigen);
 
 router.post("/alta", postBoletin); //MySql
-router.post("/subir-archivo", funcionMulter);
-// router.post("/guardar", postBoletinGuardar);
-router.put("/editar", putBoletinesMySql);
-// router.put("/traer", putContenido);
 router.post("/subir-archivo", funcionMulter); //MySql
 // router.post("/guardar", postBoletinGuardar); //MySql
 router.put("/editar", putBoletinesMySql); //MySql

@@ -17,18 +17,18 @@ const getNormas = async (req, res) => {
   }
 };
 
-const putNormas = async (req, res) => {
+const putNormasListado = async (req, res) => {
   try {
     const db = await conectarMySql();
-    console.log(req.body);
+    // console.log(req.body);
     const { id_norma, tipo_norma, habilita } = req.body;
     
     // Log para verificar los valores de los parámetros
-    console.log('Valores de los parámetros:', id_norma, tipo_norma, habilita);
+    // console.log('Valores de los parámetros:', id_norma, tipo_norma, habilita);
     
     // Ejecutar la consulta SQL
     await db.query(
-      'UPDATE norma SET id_norma = ?, tipo_norma = ?, habilita = ? WHERE id_norma = ?',
+      'UPDATE norma_prueba SET id_norma = ?, tipo_norma = ?, habilita = ? WHERE id_norma = ?',
       [id_norma, tipo_norma, habilita, id_norma] // Aquí, se deben pasar los parámetros como una matriz plana
     );
     
@@ -41,12 +41,12 @@ const putNormas = async (req, res) => {
 };
 
 
-const getNormasTodo = async (req, res) => {
+const getNormasListado = async (req, res) => {
   try {
     const db = await conectarMySql();
     if (!db || !db.query) {
       throw new CustomError("Database connection or query function is missing", 500);
-    }const [normas] = await db.query( "SELECT * FROM norma");
+    }const [normas] = await db.query( "SELECT * FROM norma_prueba");
     // console.log([normas])
     res.json(normas);
   } catch (error) {
@@ -119,4 +119,4 @@ const getNormasTodo = async (req, res) => {
 //   }
 // };
 
-module.exports = { getNormas, putNormas, getNormasTodo };
+module.exports = { getNormas, putNormasListado, getNormasListado };
