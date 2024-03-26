@@ -17,8 +17,6 @@ const getNormas = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-=======
 const putNormas = async (req, res) => {
   try {
     const db = await conectarMySql();
@@ -58,7 +56,6 @@ const getNormasTodo = async (req, res) => {
 };
 
 
->>>>>>> 0205cb8bd0b1af5db50c1c5c22fc5575c91713a1
 // // Función para obtener todas las normas
 // Norma.getAllNormas = async () => {
 //   try {
@@ -122,8 +119,4 @@ const getNormasTodo = async (req, res) => {
 //   }
 // };
 
-<<<<<<< HEAD
-module.exports = { getNormas };
-=======
 module.exports = { getNormas, putNormas, getNormasTodo };
->>>>>>> 0205cb8bd0b1af5db50c1c5c22fc5575c91713a1

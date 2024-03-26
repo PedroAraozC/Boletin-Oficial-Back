@@ -19,60 +19,41 @@ const getBoletinesMySql = async (req, res) => {
   }
 };
 
-const getContenido = async (req, res) => {
-  try {
-    const db = await conectarMySql(); 
-    const [contenido_boletin] = await db.query(
-     
-      "SELECT * FROM contenido_boletin"
-    );
-    res.json(contenido_boletin);
-    await db.end();
-  } catch (error) {
-    await db.end();
-    console.error("Error al buscar contenido:", error);
-    res.status(500).json({ message: "Error al buscar contenido" });
-  }
-};
-
-const putContenido = async (req, res) => {
-  try {
-    const { id_contenido_boletin, id_boletin, id_norma, nro_norma, id_origen, fecha_norma } = req.body;
-    const db = await conectarMySql();
-
-    // Log para verificar los valores de los parámetros
-    console.log('Valores de los parámetros:', id_contenido_boletin, id_boletin, id_norma, nro_norma, id_origen, fecha_norma);
-
-    // Ejecutar la consulta SQL
-    await db.query(
-      'UPDATE contenido_boletin SET id_boletin = ?, id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ? WHERE id_contenido_boletin = ?',
-      [id_boletin, id_norma, nro_norma, id_origen, fecha_norma.slice(0, 10), id_contenido_boletin]
-    );
-
-    // Respuesta exitosa
-    res.status(200).json({ message: 'Contenido de boletín actualizado con éxito' });
-    await db.end();
-  } catch (error) {
-    console.error('Error al actualizar contenido de boletín:', error);
-    res.status(500).json({ message: 'Error al actualizar contenido de boletín' });
-  }
-};
-
 const getBoletinesListado = async (req, res) => {
   try {
     const db = await conectarMySql();
-    const [boletines] = await db.query(
-      "SELECT * FROM boletin"
-    );
+    const [boletines] = await db.query("SELECT * FROM boletin_prueba");
+    // const [contenidoBoletines] = await db.query(
+    //   "SELECT * FROM contenido_boletin_prueba"
+    // );
+    // const data ={ boletines: boletines, contenidoBoletines: contenidoBoletines}
+    // console.log(data)
     res.json(boletines);
     await db.end();
   } catch (error) {
     await db.end();
     console.error("Error al buscar boletines:", error);
-    res.status(500).json({ message: "Error al buscar boletines" });
+    res.status(500).json({ message: "Error al buscar boletines en listado" });
   }
 };
 
+const getBoletinesContenidoListado = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    // const [boletines] = await db.query(
+    //   "SELECT * FROM boletin_prueba"
+    // );
+    const [contenidoBoletines] = await db.query(
+      "SELECT * FROM contenido_boletin_prueba"
+    );
+    res.json(contenidoBoletines);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar boletines:", error);
+    res.status(500).json({ message: "Error al buscar boletines en listado" });
+  }
+};
 
 const getOrigen = async (req, res) => {
   try {
@@ -84,7 +65,7 @@ const getOrigen = async (req, res) => {
       );
     }
     const [origen] = await db.query("SELECT * FROM origen WHERE habilita = 1");
-    console.log([origen]);
+    // console.log([origen]);
     res.json(origen);
     await db.end();
   } catch (error) {
@@ -151,149 +132,72 @@ const getBuscarNroYFechaMySql = async (req, res) => {
 };
 
 const getBuscarPorTipoMySql = async (req, res) => {
-  const { tipo, parametro } = req.params;
+  const { idNorma, parametro } = req.params;
   let boletines = [];
-
   try {
-    switch (tipo) {
-      case "DECRETO":
-        if (!parametro || parametro === "undefined" || parametro === "") {
-          const db = await conectarMySql();
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 1
-            AND b.habilita = 1;`
-          );
-          break;
-        } else {
-          const db = await conectarMySql();
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 1
-            AND b.habilita = 1
-            AND cb.nro_norma = '${parametro}'; `
-          );
-          break;
-        }
+    const db = await conectarMySql();
+    const [norma] = await db.query(
+      `SELECT tipo_norma FROM norma WHERE id_norma = ${idNorma}`
+    );
 
-      case "ORDENANZA":
-        if (!parametro || parametro === "undefined" || parametro === "") {
-          const db = await conectarMySql();
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 2
-            AND b.habilita = 1;`
-          );
-          break;
-        } else {
-          const db = await conectarMySql();
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 2
-            AND b.habilita = 1
-            AND cb.nro_norma = '${parametro}'; `
-          );
-          break;
-        }
-
-      case "RESOLUCION":
-        if (!parametro || parametro === "undefined" || parametro === "") {
-          const db = await conectarMySql();
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 3
-            AND b.habilita = 1;`
-          );
-          break;
-        } else {
-          const db = await conectarMySql();
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 3
-            AND b.habilita = 1
-            AND cb.nro_norma = '${parametro}'; `
-          );
-          break;
-        }
-      default:
-        throw new CustomError("Tipo de búsqueda no válido", 400);
+    if (!norma) {
+      throw new CustomError("ID de norma no válido", 400);
     }
+
+    let query = `
+      SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+      FROM contenido_boletin cb
+      JOIN boletin b ON cb.id_boletin = b.id_boletin
+      WHERE cb.id_norma = ?
+      AND b.habilita = 1
+    `;
+
+    if (parametro && parametro !== "undefined" && parametro !== "") {
+      query += ` AND cb.nro_norma = '${parametro}'`;
+    }
+
+    const [result] = await db.query(query, [idNorma]);
+    boletines = result;
 
     res.json(boletines);
     await db.end();
   } catch (error) {
-    await db.end();
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
   }
 };
 
 const getBuscarPorFechaMySql = async (req, res) => {
-  const { fecha, tipo } = req.params;
+  const { fecha, idNorma } = req.params;
   let boletines = [];
   try {
-    if ((!tipo || tipo === "undefined" || tipo === "") && fecha === "") {
-      throw new CustomError("Tipo de búsqueda no válido", 400);
-    } else if ((!tipo || tipo === "undefined" || tipo === "") && fecha !== "") {
-      const db = await conectarMySql();
-      [boletines] = await db.query(
-        `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-        FROM contenido_boletin cb
-        JOIN boletin b ON cb.id_boletin = b.id_boletin
-        WHERE cb.fecha_norma = '${fecha}'
-        AND b.habilita = 1;`
-      );
-    } else if ((tipo !== "undefined" || tipo !== "") && fecha !== "") {
-      const db = await conectarMySql();
-      switch (tipo) {
-        case "DECRETO":
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 1
-            AND b.habilita = 1
-            AND cb.fecha_norma = '${fecha}'; `
-          );
-          break;
-
-        case "ORDENANZA":
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 2
-            AND b.habilita = 1
-            AND cb.fecha_norma = '${fecha}'; `
-          );
-          break;
-
-        case "RESOLUCION":
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 3
-            AND b.habilita = 1
-            AND cb.fecha_norma = '${fecha}'; `
-          );
-          break;
-        default:
-          throw new CustomError("Tipo de búsqueda no válido", 400);
-      }
+    if (!fecha && (!idNorma || idNorma === "undefined" || idNorma === "")) {
+      throw new CustomError("Fecha o ID de norma no válidos", 400);
     }
+
+    const db = await conectarMySql();
+    let query = `
+      SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+      FROM contenido_boletin cb
+      JOIN boletin b ON cb.id_boletin = b.id_boletin
+      WHERE b.habilita = 1
+    `;
+
+    if (fecha && fecha !== "undefined" && fecha !== "") {
+      query += ` AND cb.fecha_norma = '${fecha}'`;
+    }
+
+    if (idNorma && idNorma !== "undefined" && idNorma !== "") {
+      query += ` AND cb.id_norma = ?`;
+    }
+
+    let params = [];
+    if (idNorma && idNorma !== "undefined" && idNorma !== "") {
+      params.push(idNorma);
+    }
+
+    const [result] = await db.query(query, params);
+    boletines = result;
 
     res.json(boletines);
     await db.end();
@@ -309,60 +213,49 @@ const getBuscarPorTodoMySql = async (req, res) => {
     const { fecha, tipo, nroNorma } = req.params;
     let boletines = [];
     const db = await conectarMySql();
-    console.log(req.params);
 
     if (
       (!tipo || tipo === "undefined" || tipo === "") &&
-      fecha === "" &&
-      (nroNorma === "" || nroNorma === undefined || !nroNorma)
+      (!fecha || fecha === "undefined" || fecha === "") &&
+      (!nroNorma || nroNorma === "undefined" || nroNorma === "")
     ) {
-      throw new CustomError("Tipo de búsqueda no válido", 400);
-    } else if (
-      (tipo !== "undefined" || tipo !== "") &&
-      fecha !== "" &&
-      (nroNorma !== "" || nroNorma !== undefined)
-    ) {
-      switch (tipo) {
-        case "DECRETO":
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 1
-            AND b.habilita = 1
-            AND cb.fecha_norma = '${fecha}'
-            AND cb.nro_norma = '${nroNorma}'; `
-          );
-
-          break;
-
-        case "ORDENANZA":
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-              FROM contenido_boletin cb
-              JOIN boletin b ON cb.id_boletin = b.id_boletin
-              WHERE cb.id_norma = 2
-              AND b.habilita = 1
-              AND cb.fecha_norma = '${fecha}'
-              AND cb.nro_norma = '${nroNorma}'; `
-          );
-          break;
-
-        case "RESOLUCION":
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-              FROM contenido_boletin cb
-              JOIN boletin b ON cb.id_boletin = b.id_boletin
-              WHERE cb.id_norma = 3
-              AND b.habilita = 1
-              AND cb.fecha_norma = '${fecha}'
-              AND cb.nro_norma = '${nroNorma}'; `
-          );
-          break;
-        default:
-          throw new CustomError("Tipo de búsqueda no válido", 400);
-      }
+      throw new CustomError("Parámetros de búsqueda no válidos", 400);
     }
+
+    let query = `
+      SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+      FROM contenido_boletin cb
+      JOIN boletin b ON cb.id_boletin = b.id_boletin
+      WHERE b.habilita = 1
+    `;
+
+    if (tipo && tipo !== "undefined" && tipo !== "") {
+      query += ` AND cb.id_norma = ?`;
+    }
+
+    if (fecha && fecha !== "undefined" && fecha !== "") {
+      query += ` AND cb.fecha_norma = ?`;
+    }
+
+    if (nroNorma && nroNorma !== "undefined" && nroNorma !== "") {
+      query += ` AND cb.nro_norma = ?`;
+    }
+
+    let params = [];
+    if (tipo && tipo !== "undefined" && tipo !== "") {
+      params.push(tipo);
+    }
+
+    if (fecha && fecha !== "undefined" && fecha !== "") {
+      params.push(fecha);
+    }
+
+    if (nroNorma && nroNorma !== "undefined" && nroNorma !== "") {
+      params.push(nroNorma);
+    }
+
+    const [result] = await db.query(query, params);
+    boletines = result;
 
     res.json(boletines);
     await db.end();
@@ -422,124 +315,101 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
   }
 };
 
-const postBoletinGuardar = async (req, res) => {
-  try {
-    const db = await conectarMySql();
-    const {id_boletin, nro_boletin, fecha_publicacion, habilita } = req.body;
+// const postBoletinGuardar = async (req, res) => {
+//   try {
+//     const db = await conectarMySql();
+//     const {id_boletin, nro_boletin, fecha_publicacion, habilita } = req.body;
 
+//     const [result] = await db.query(
+//       "INSERT INTO boletin id_boletin = ?, nro_boletin = ?, fecha_publicacion = ?, habilita = ? ",
+//       [id_boletin,nro_boletin, fecha_publicacion, habilita]
+//     );
 
-    const [result] = await db.query(
-      "INSERT INTO boletin id_boletin = ?, nro_boletin = ?, fecha_publicacion = ?, habilita = ? ",
-      [id_boletin,nro_boletin, fecha_publicacion, habilita]
-    );
+//     console.log('Cambios guardados correctamente:', result);
 
-    console.log('Cambios guardados correctamente:', result);
-
-    // Puedes enviar una respuesta al frontend si lo necesitas
-    res.status(200).json({ message: 'Cambios guardados correctamente' });
-  } catch (error) {
-    console.error('Error al guardar cambios:', error);
-    // Puedes enviar un código de error y un mensaje al frontend si lo necesitas
-    res.status(500).json({ error: 'Error al guardar cambios' });
-  }
-};
+//     // Puedes enviar una respuesta al frontend si lo necesitas
+//     res.status(200).json({ message: 'Cambios guardados correctamente' });
+//   } catch (error) {
+//     console.error('Error al guardar cambios:', error);
+//     // Puedes enviar un código de error y un mensaje al frontend si lo necesitas
+//     res.status(500).json({ error: 'Error al guardar cambios' });
+//   }
+// };
 
 const putBoletinesMySql = async (req, res) => {
   try {
     const db = await conectarMySql();
     console.log(req.body);
-    const { id_boletin, nro_boletin, fecha_publicacion, habilita } = req.body;
-    
+    const { id_boletin, nro_boletin, fecha_publicacion, habilita, normasAgregadasEditar } = req.body;
+
     // Log para verificar los valores de los parámetros
-    console.log('Valores de los parámetros:', id_boletin, nro_boletin, fecha_publicacion, habilita);
-    
+    // console.log(
+    //   "Valores de los parámetros:",
+    //   id_boletin,
+    //   nro_boletin,
+    //   fecha_publicacion,
+    //   habilita
+    // );
+
     // Ejecutar la consulta SQL
     await db.query(
-      'UPDATE boletin SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?',
+      "UPDATE boletin_prueba SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
       [nro_boletin, fecha_publicacion.slice(0, 10), habilita, id_boletin]
     );
 
-    // Respuesta exitosa
-    res.status(200).json({ message: 'Boletín actualizado con éxito' });
+    for (const contenido of normasAgregadasEditar) {
+      const { norma, numero, origen, año } = contenido;
+
+      await db.query(
+        "UPDATE contenido_boletin_prueba SET id_norma=?, nro_norma=?, id_origen=?, fecha_norma=? WHERE id_boletin = ?",
+        [norma, numero, origen, año.slice(0, 10), id_boletin]
+      );
+    }
+    res.status(200).json({ message: "Boletín actualizado con éxito" });
   } catch (error) {
-    console.error('Error al actualizar boletín:', error);
-    res.status(500).json({ message: 'Error al actualizar boletín' });
+    console.error("Error al actualizar boletín:", error);
+    res.status(500).json({ message: "Error al actualizar boletín" });
   }
 };
-
-
 
 const postBoletin = async (req, res) => {
   try {
     const db = await conectarMySql();
     funcionMulter()(req, res, async (err) => {
-      console.log(req.body, "356");
-      console.log(req.file, "357");
-
       if (!req.file) {
         throw new CustomError("Error al cargar el archivo", 400);
       }
-
-      console.log(req.body, "16");
-      console.log(req.file, "17");
-
       let requestData = "";
 
       if (req.body.requestData === undefined) {
         requestData = JSON.parse(req.body.requestData[1]);
-        console.log("hola");
       } else {
         requestData = JSON.parse(req.body.requestData);
-        console.log("adios");
       }
-      console.log(requestData);
-      console.log(requestData.fechaBoletin, "f");
-      console.log(requestData.nroBoletin, "e");
-      console.log(requestData.fechaNormaBoletin, "d");
-      console.log(requestData.nroDecreto, "c");
-      console.log(requestData.nroOrdenanza, "b");
-      console.log(requestData.nroResolucion, "a");
-      console.log(requestData.origen, "a");
 
       const [result] = await db.query(
-        "INSERT INTO boletin_prueba (nro_boletin, fecha_publicacion) VALUES (?, ?)",
-        [requestData.nroBoletin, requestData.fechaBoletin]
+        "INSERT INTO boletin (nro_boletin, fecha_publicacion, habilita) VALUES (?, ?, ?)",
+        [
+          requestData.nroBoletin,
+          requestData.fechaPublicacion,
+          requestData.habilita,
+        ]
       );
       const nuevoID = result.insertId;
 
       // const [normas] = await db.query(`SELECT * FROM norma WHERE habilita = 1`);
-      // console.log(normas);
 
-      if (requestData.nroDecreto.length > 0) {
-        for (const decreto of requestData.nroDecreto) {
-          const idNorma = 1;
-          await db.query(
-            "INSERT INTO contenido_boletin_prueba (id_boletin, id_norma, nro_norma, fecha_norma) VALUES (?, ?, ?, ?)",
-            [nuevoID, idNorma, decreto, requestData.fechaNormaBoletin]
-          );
-        }
+      for (const contenido of requestData.arrayContenido) {
+        const { norma, numero, origen, año } = contenido;
+        const idNorma = norma.id_norma;
+        const idOrigen = origen.id_origen;
+        await db.query(
+          "INSERT INTO contenido_boletin (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
+          [nuevoID, idNorma, numero, idOrigen, año]
+        );
       }
-      if (requestData.nroOrdenanza.length > 0) {
-        for (const ordenanza of requestData.nroOrdenanza) {
-          const idNorma = 2;
 
-          await db.query(
-            "INSERT INTO contenido_boletin_prueba (id_boletin, id_norma, nro_norma, fecha_norma) VALUES (?, ?, ?, ?)",
-            [nuevoID, idNorma, ordenanza, requestData.fechaNormaBoletin]
-          );
-        }
-      }
-      if (requestData.nroResolucion.length > 0) {
-        for (const resolucion of requestData.nroResolucion) {
-          const idNorma = 3;
-
-          await db.query(
-            "INSERT INTO contenido_boletin_prueba (id_boletin, id_norma, nro_norma, fecha_norma) VALUES (?, ?, ?, ?)",
-            [nuevoID, idNorma, resolucion, requestData.fechaNormaBoletin]
-          );
-        }
-      }
-      //VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
+      // VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
       const sftp = await conectarSFTP();
 
       if (!sftp || !sftp.sftp) {
@@ -548,7 +418,22 @@ const postBoletin = async (req, res) => {
         );
       }
       //CAMBIAR RUTA SERVIDOR PRODUCCION
-      const rutaArchivo = `/home/boletin/${requestData.fechaBoletin.slice(0,4)}/bol_${requestData.nroBoletin}_${requestData.fechaBoletin.slice(0,10)}.pdf`;
+      //RUTA PC PEDRO
+      // const rutaArchivo = `C:\\Users\\Programadores\\Desktop\\${requestData.fechaPublicacion.slice(
+      //   0,
+      //   4
+      // )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
+      //   0,
+      //   10
+      // )}.pdf`;
+      //RUTA SERVIDOR DESARROLLO (172.16.8.209)
+      const rutaArchivo = `/home/boletin/${requestData.fechaPublicacion.slice(
+        0,
+        4
+      )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
+        0,
+        10
+      )}.pdf`;
 
       await sftp.put(req.file.path, rutaArchivo);
       await sftp.end();
@@ -569,14 +454,17 @@ const postBoletin = async (req, res) => {
 
 module.exports = {
   postBoletin,
+  putBoletinesMySql,
+  // postBoletinGuardar,
+  getOrigen,
   getBoletinesMySql,
   getBuscarNroMySql,
+  getBoletinesListado,
   getBuscarFechaMySql,
-  getBuscarNroYFechaMySql,
+  getBuscarPorTodoMySql,
   getBuscarPorTipoMySql,
   getBuscarPorFechaMySql,
-  getBuscarPorTodoMySql,
+  getBuscarNroYFechaMySql,
+  getBoletinesContenidoListado,
   obtenerArchivosDeUnBoletinMySql,
-  getOrigen,
-  putBoletinesMySql,postBoletin, postBoletinGuardar,getBoletinesListado, getContenido, putContenido,
 };

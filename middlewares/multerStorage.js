@@ -12,12 +12,12 @@ const funcionMulter = () => {
     filename: function (req, file, cb) {
       const boletin = JSON.parse(req.body.requestData);
 
-      if (!boletin.nroBoletin || !boletin.fechaBoletin) {
+      if (!boletin.nroBoletin || !boletin.fechaPublicacion) {
         return cb(
           new Error("Falta información para construir el nombre del archivo")
         );
       }
-      const nombreArchivo = `bol_${boletin.nroBoletin}_${boletin.fechaBoletin}.pdf`;
+      const nombreArchivo = `bol_${boletin.nroBoletin}_${boletin.fechaPublicacion}.pdf`;
       cb(null, nombreArchivo);
     },
   });
