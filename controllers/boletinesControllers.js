@@ -1,593 +1,433 @@
-const Boletin = require("../models/boletin");
 const CustomError = require("../utils/customError");
-const path = require("path");
-const fs = require("fs");
-// const obtenerPeriodoDelDiaConHora = require("../utils/helpers");
+const { conectarMySql } = require("../config/dbMySql");
+const { conectarSFTP } = require("../config/dbwinscp");
+const { funcionMulter } = require("../middlewares/multerStorage");
 
-const agregarBoletin = async (req, res) => {
-  const {
-    fechaBoletin,
-    estado,
-    nroBoletin,
-    // rutaPdf,
-    archivoBoletin,
-    nroDecreto,
-    nroOrdenanza,
-    nroResolucion,
-  } = req.body;
-
-  // const folderPath = `C:\\Users\\g.alonso\\Desktop\\SysGesCOM-back\\uploads\\${userName}`;
-
-  // fs.readdir(folderPath, async (err, files) => {
-  //   if (err) {
-  //     console.error("Error al leer la carpeta:", err);
-  //     // Maneja el error aquí si es necesario.
-  //     res.status(500).json({ message: "Error al leer la carpeta" });
-  //   } else {
+const getBoletinesMySql = async (req, res) => {
   try {
-    // const lastFile = files[files.length - 1];
-    // const filePath = path.join(folderPath, lastFile);
-
-    // const ultimoReporte = await Reporte.find().sort({ _id: -1 }).limit(1);
-    // const nuevoNumeroDeReporte =
-    //   ultimoReporte.length > 0 ? ultimoReporte[0].numero + 1 : 1;
-
-    // // Verificar si el número de reporte ya existe en la colección
-    // const existeReporte = await Reporte.findOne({
-    //   numero: nuevoNumeroDeReporte,
-    // });
-
-    // if (existeReporte) {
-    //   res.status(400).json({ message: "Intente de nuevo en breve" });
-    // } else {
-
-    const newBoletin = new Boletin({
-      fechaBoletin,
-      estado,
-      nroBoletin,
-      // rutaPdf,
-      // archivoBoletin,
-      nroDecreto,
-      nroOrdenanza,
-      nroResolucion,
-    });
-
-    await newBoletin.save();
-    res.status(200).json({ message: "Se agregó un nuevo Boletín con éxito" });
+    const db = await conectarMySql();
+    const [boletines] = await db.query(
+      "SELECT * FROM boletin WHERE habilita = 1"
+    );
+    res.json(boletines);
+    await db.end();
   } catch (error) {
-    // Manejar el error
-    if (error.name === "MongoServerError" && error.code === 11000) {
-      // Clave duplicada para nroBoletin
-      res.status(400).json({ message: "El número de boletín ya existe" });
-    } else {
-      // Otro tipo de error
-      res.status(500).json({ message: "Error al crear Boletín" });
-    }
+    await db.end();
+    console.error("Error al buscar boletines:", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
   }
-  // }});
 };
 
-const getBoletin = async (req, res) => {
-
-    try {
-      const boletines = await Boletin.find();
-      res.json(boletines);
-    } catch (error) {
-      console.error("Error al buscar boletines: ", error);
-      res.status(500).json({ message: "Error al buscar boletines" });
-    }
+const getBoletinesListado = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    const [boletines] = await db.query("SELECT * FROM boletin");
+    res.json(boletines);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar boletines:", error);
+    res.status(500).json({ message: "Error al buscar boletines en listado" });
   }
-  // {
-  //   try {
-  //   if (req.params.id) {
-  //     const boletin = await boletin.findById(req.params.id);
-  //     if (!boletin) throw new CustomError("Boletin no encontrado", 404);
+};
 
-  //     //   if (fs.existsSync(reporte.rutaImagen)) {
-  //     //     res.sendFile(reporte.rutaImagen);
-  //     //   } else {
-  //     //     throw new CustomError("Imágen no encontrada", 404);
-  //     //   }
-  //     // } else {
-  //     if (req.user.tipoDeUsuario == "visualizador") {
-  //       const fechaActual = new Date();
-  //       fechaActual.setHours(0, 0, 0, 0);
-  //       const fechaSiguiente = new Date(fechaActual);
-  //       fechaSiguiente.setDate(fechaSiguiente.getDate() + 1);
+const getBoletinesContenidoListado = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    const [contenidoBoletines] = await db.query(
+      "SELECT * FROM contenido_boletin WHERE habilita = 1"
+    );
+    res.json(contenidoBoletines);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar boletines:", error);
+    res.status(500).json({ message: "Error al buscar boletines en listado" });
+  }
+};
 
-  //       const boletin = await Boletin.find({
-  //         estado: true,
-  //         createdAt: {
-  //           $gte: fechaActual,
-  //           $lt: fechaSiguiente,
-  //         },
-  //       })
-  //         .populate("naturaleza")
-  //         .populate("categoria")
-  //         .populate("subcategoria")
-  //         .populate("usuario")
-  //         .populate("dispositivo")
-  //         .populate({
-  //           path: "despacho",
-  //           populate: [
-  //             {
-  //               path: "usuario",
-  //               model: "User",
-  //             },
-  //             {
-  //               path: "reparticiones",
-  //               model: "Reparticion",
-  //             },
-  //           ],
-  //         });
+const getBuscarNroMySql = async (req, res) => {
+  const { nroBoletin } = req.params;
+  try {
+    const db = await conectarMySql();
+    const [boletines] = await db.query(
+      `SELECT * FROM boletin WHERE nro_boletin = ${nroBoletin} AND habilita = 1`
+    );
+    res.json(boletines);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar boletines: ", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
 
-  //       res.status(200).json({ reportes });
-  //     } else if (req.user.tipoDeUsuario == "supervisor") {
-  //       const fechaActual = new Date();
-  //       fechaActual.setHours(0, 0, 0, 0);
-  //       const fechaAnterior = new Date(fechaActual);
-  //       fechaAnterior.setDate(fechaAnterior.getDate() - 1);
-  //       const fechaSiguiente = new Date(fechaActual);
-  //       fechaSiguiente.setDate(fechaSiguiente.getDate() + 1);
+const getBuscarFechaMySql = async (req, res) => {
+  const { fechaBoletin } = req.params;
+  try {
+    const db = await conectarMySql();
+    const [boletines] = await db.query(
+      `SELECT * FROM boletin WHERE fecha_publicacion = '${fechaBoletin}' AND habilita = 1`
+    );
+    res.json(boletines);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar boletines: ", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
 
-  //       const reportes = await Reporte.find({
-  //         estado: true,
-  //         createdAt: {
-  //           $gte: fechaAnterior,
-  //           $lt: fechaSiguiente,
-  //         },
-  //       })
-  //         .populate("naturaleza")
-  //         .populate("categoria")
-  //         .populate("subcategoria")
-  //         .populate("usuario")
-  //         .populate("dispositivo")
-  //         .populate({
-  //           path: "despacho",
-  //           populate: [
-  //             {
-  //               path: "usuario",
-  //               model: "User",
-  //             },
-  //             {
-  //               path: "reparticiones",
-  //               model: "Reparticion",
-  //             },
-  //           ],
-  //         });
+const getBuscarNroYFechaMySql = async (req, res) => {
+  const { nroBoletin, fechaBoletin } = req.params;
+  try {
+    const db = await conectarMySql();
 
-  //       res.status(200).json({ reportes });
-  //     } else {
-  //       const fechaActual = new Date();
-  //       const mesActual = fechaActual.toLocaleString("es-ES", {
-  //         month: "short",
-  //       }); // Obtenemos el nombre del mes abreviado en español
+    if (
+      nroBoletin !== undefined &&
+      nroBoletin !== "" &&
+      fechaBoletin !== "" &&
+      fechaBoletin !== undefined
+    ) {
+      const [boletines] = await db.query(
+        `SELECT * FROM boletin WHERE fecha_publicacion = '${fechaBoletin}' AND nro_boletin = '${nroBoletin}' AND habilita = 1`
+      );
+      res.json(boletines);
+    }
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar boletines: ", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
 
-  //       const reportes = await Reporte.find({
-  //         estado: true,
-  //         fecha: { $regex: new RegExp(mesActual, "i") },
-  //       })
-  //         .populate("naturaleza")
-  //         .populate("categoria")
-  //         .populate("subcategoria")
-  //         .populate("usuario")
-  //         .populate("dispositivo")
-  //         .populate({
-  //           path: "despacho",
-  //           populate: [
-  //             {
-  //               path: "usuario",
-  //               model: "User",
-  //             },
-  //             {
-  //               path: "reparticiones",
-  //               model: "Reparticion",
-  //             },
-  //           ],
-  //         });
+const getBuscarPorTipoMySql = async (req, res) => {
+  const { idNorma, parametro } = req.params;
+  let boletines = [];
+  try {
+    const db = await conectarMySql();
+    const [norma] = await db.query(
+      `SELECT tipo_norma FROM norma WHERE id_norma = ${idNorma}`
+    );
 
-  //       res.status(200).json({ reportes });
-  //     }
-  //   }
-  // } catch (error) {
-  //   res
-  //     .status(error.code || 500)
-  //     .json({ message: error.message || "algo explotó :|" });
-  // }};
+    if (!norma) {
+      throw new CustomError("ID de norma no válido", 400);
+    }
 
-// const getReportesHistorico = async (req, res) => {
-//   try {
-//     const reportes = await Reporte.find({ estado: true })
-//       .populate("naturaleza")
-//       .populate("categoria")
-//       .populate("subcategoria")
-//       .populate("usuario")
-//       .populate("dispositivo")
-//       .populate({
-//         path: "despacho",
-//         populate: [
-//           {
-//             path: "usuario",
-//             model: "User",
-//           },
-//           {
-//             path: "reparticiones",
-//             model: "Reparticion",
-//           },
-//         ],
-//       });
+    let query = `
+      SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+      FROM contenido_boletin cb
+      JOIN boletin b ON cb.id_boletin = b.id_boletin
+      WHERE cb.id_norma = ?
+      AND b.habilita = 1
+    `;
 
-//     res.status(200).json({ reportes });
-//   } catch (error) {
-//     res
-//       .status(error.code || 500)
-//       .json({ message: error.message || "algo explotó :|" });
-//   }
-// };
+    if (parametro && parametro !== "undefined" && parametro !== "") {
+      query += ` AND cb.nro_norma = '${parametro}'`;
+    }
 
-// const getReportesPaginacion = async (req, res) => {
-//   try {
-//     const perPage = 10; // Número de resultados por página
-//     const page = parseInt(req.query.page) || 1; // Página solicitada (puede venir desde el front-end)
-//     const startIndex = (page - 1) * perPage;
+    const [result] = await db.query(query, [idNorma]);
+    boletines = result;
 
-//     const reportes = await Reporte.find({ estado: true })
-//       .skip(startIndex)
-//       .limit(perPage)
-//       .populate("naturaleza")
-//       .populate("categoria")
-//       .populate("subcategoria")
-//       .populate("usuario")
-//       .populate("dispositivo")
-//       .populate({
-//         path: "despacho",
-//         populate: {
-//           path: "usuario",
-//           model: "User",
-//         },
-//       });
-//     //.populate("despacho");
+    res.json(boletines);
+    await db.end();
+  } catch (error) {
+    console.error("Error al buscar boletines: ", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
 
-//     const totalDocuments = await Reporte.countDocuments({ estado: true });
-//     const totalPages = Math.ceil(totalDocuments / perPage);
+const getBuscarPorFechaMySql = async (req, res) => {
+  const { fecha, idNorma } = req.params;
+  let boletines = [];
+  try {
+    if (!fecha && (!idNorma || idNorma === "undefined" || idNorma === "")) {
+      throw new CustomError("Fecha o ID de norma no válidos", 400);
+    }
 
-//     res
-//       .status(200)
-//       .json({ reportes, currentPage: page, totalPages: totalPages });
-//   } catch (error) {
-//     res
-//       .status(error.code || 500)
-//       .json({ message: error.message || "algo explotó :|" });
-//   }
-// };
+    const db = await conectarMySql();
+    let query = `
+      SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+      FROM contenido_boletin cb
+      JOIN boletin b ON cb.id_boletin = b.id_boletin
+      WHERE b.habilita = 1
+    `;
 
-// const getReportesPodio = async (req, res) => {
-//   try {
-//     let reportes = await Reporte.find({ estado: true }).populate("usuario");
+    if (fecha && fecha !== "undefined" && fecha !== "") {
+      query += ` AND cb.fecha_norma = '${fecha}'`;
+    }
 
-//     if (req.params.turno !== undefined) {
-//       reportes = reportes.filter(
-//         (rep) => rep.usuario.turno == req.params.turno
-//       );
-//     }
+    if (idNorma && idNorma !== "undefined" && idNorma !== "") {
+      query += ` AND cb.id_norma = ?`;
+    }
 
-//     const currentDate = new Date();
-//     const currentYear = currentDate.getFullYear();
-//     const currentMonth = currentDate.getMonth();
+    let params = [];
+    if (idNorma && idNorma !== "undefined" && idNorma !== "") {
+      params.push(idNorma);
+    }
 
-//     const reportesConDespachoYMesActual = reportes.filter((rep) => {
-//       return (
-//         rep.createdAt.getMonth() === currentMonth &&
-//         rep.createdAt.getFullYear() === currentYear
-//       );
-//       //  rep.despacho !== undefined &&
-//     });
-//     const reportesPorUsuarioYMes = reportesConDespachoYMesActual.reduce(
-//       (contador, rep) => {
-//         const userId = rep.usuario._id.toString();
-//         const month = rep.createdAt.getMonth();
-//         const year = rep.createdAt.getFullYear();
+    const [result] = await db.query(query, params);
+    boletines = result;
 
-//         const clave = `${userId}-${year}-${month}`;
-//         contador[clave] = (contador[clave] || 0) + 1;
-//         return contador;
-//       },
-//       {}
-//     );
+    res.json(boletines);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar boletines: ", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
 
-//     const usuariosConReportesPorMes = Object.keys(reportesPorUsuarioYMes).map(
-//       (clave) => {
-//         const [userId, year, month] = clave.split("-");
-//         return {
-//           usuario: userId,
-//           year: parseInt(year),
-//           month: parseInt(month),
-//           cantidadDeReportes: reportesPorUsuarioYMes[clave],
-//         };
-//       }
-//     );
+const getBuscarPorTodoMySql = async (req, res) => {
+  try {
+    const { fecha, tipo, nroNorma } = req.params;
+    let boletines = [];
+    const db = await conectarMySql();
 
-//     const usuariosConMasReportesPorMes = {};
-//     usuariosConReportesPorMes.forEach((rep) => {
-//       if (!usuariosConMasReportesPorMes[rep.year]) {
-//         usuariosConMasReportesPorMes[rep.year] = {};
-//       }
-//       if (!usuariosConMasReportesPorMes[rep.year][rep.month]) {
-//         usuariosConMasReportesPorMes[rep.year][rep.month] = [];
-//       }
-//       usuariosConMasReportesPorMes[rep.year][rep.month].push(rep);
-//     });
+    if (
+      (!tipo || tipo === "undefined" || tipo === "") &&
+      (!fecha || fecha === "undefined" || fecha === "") &&
+      (!nroNorma || nroNorma === "undefined" || nroNorma === "")
+    ) {
+      throw new CustomError("Parámetros de búsqueda no válidos", 400);
+    }
 
-//     const top3UsuariosPorMes = [];
-//     for (const year in usuariosConMasReportesPorMes) {
-//       for (const month in usuariosConMasReportesPorMes[year]) {
-//         const usuariosEnMes = usuariosConMasReportesPorMes[year][month];
-//         usuariosEnMes.sort(
-//           (a, b) => b.cantidadDeReportes - a.cantidadDeReportes
-//         );
-//         top3UsuariosPorMes.push(...usuariosEnMes.slice(0, 3));
-//       }
-//     }
+    let query = `
+      SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+      FROM contenido_boletin cb
+      JOIN boletin b ON cb.id_boletin = b.id_boletin
+      WHERE b.habilita = 1
+    `;
 
-//     const usuariosCompletos = await User.find({
-//       _id: { $in: top3UsuariosPorMes.map((user) => user.usuario) },
-//     });
+    if (tipo && tipo !== "undefined" && tipo !== "") {
+      query += ` AND cb.id_norma = ?`;
+    }
 
-//     const usuariosConMasReportesConDetalles = top3UsuariosPorMes.map(
-//       (usuario) => {
-//         const usuarioCompleto = usuariosCompletos.find(
-//           (user) => user._id.toString() === usuario.usuario
-//         );
-//         return {
-//           usuario: JSON.parse(JSON.stringify(usuarioCompleto)),
-//           year: usuario.year,
-//           month: usuario.month,
-//           cantidadDeReportes: usuario.cantidadDeReportes,
-//         };
-//       }
-//     );
+    if (fecha && fecha !== "undefined" && fecha !== "") {
+      query += ` AND cb.fecha_norma = ?`;
+    }
 
-//     res
-//       .status(200)
-//       .json({ usuariosConMasReportes: usuariosConMasReportesConDetalles });
-//   } catch (error) {
-//     res
-//       .status(error.code || 500)
-//       .json({ message: error.message || "algo explotó :|" });
-//   }
-// };
+    if (nroNorma && nroNorma !== "undefined" && nroNorma !== "") {
+      query += ` AND cb.nro_norma = ?`;
+    }
 
-// const actualizarReporte = async (req, res) => {
-//   console.log(req.params);
-//   console.log(req.body);
-//   try {
-//     const { id } = req.params;
-//     // const updatedReporte = req.body;
+    let params = [];
+    if (tipo && tipo !== "undefined" && tipo !== "") {
+      params.push(tipo);
+    }
 
-//     //logica de la imagen a reemplazar
-//     const folderPath = `C:\\Users\\g.alonso\\Desktop\\SysGesCOM-back\\uploads\\${req.body.userName}`;
-//     let filePath = "";
+    if (fecha && fecha !== "undefined" && fecha !== "") {
+      params.push(fecha);
+    }
 
-//     if (req.body.rutaImagen !== "" && req.body.photo == undefined) {
-//       fs.unlink(req.body.rutaImagen, (err) => {
-//         if (err) {
-//           console.error("Error al borrar el archivo:", err);
-//           return;
-//         }
-//         console.log("Archivo borrado correctamente.");
-//       });
-//     }
+    if (nroNorma && nroNorma !== "undefined" && nroNorma !== "") {
+      params.push(nroNorma);
+    }
 
-//     fs.readdir(folderPath, async (err, files) => {
-//       if (err) {
-//         console.error("Error al leer la carpeta:", err);
-//       } else {
-//         const lastFile = files[files.length - 1];
-//         filePath = path.join(folderPath, lastFile);
-//       }
+    const [result] = await db.query(query, params);
+    boletines = result;
 
-//       const reporteUpd = {
-//         categoria: req.body.categoria,
-//         detalle: req.body.detalle,
-//         naturaleza: req.body.naturaleza,
-//         subcategoria:
-//           req.body.subcategoria == "null" ? null : req.body.subcategoria,
-//         dispositivo: req.body.dispositivo,
-//         rutaImagen:
-//           req.body.photo == undefined ? filePath : req.body.rutaImagen,
-//       };
-//       const reporte = await Reporte.findByIdAndUpdate(id, reporteUpd, {
-//         new: true,
-//         runValidators: true,
-//       });
-//       if (!reporte) throw new CustomError("Reporte no encontrado", 404);
-//       res
-//         .status(200)
-//         .json({ message: "Reporte modificado con exito", reporte });
-//     });
-//   } catch (error) {
-//     res.status(error.code || 500).json({
-//       message:
-//         error.message || "Ups! Hubo un problema, por favor intenta más tarde",
-//     });
-//   }
-// };
+    res.json(boletines);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar boletines: ", error);
+    res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
 
-// const borrarReporte = async (req, res) => {
-//   try {
-//     const { id } = req.body;
-//     const reporteRemove = {
-//       estado: false,
-//     };
-//     const reporteEliminado = await Reporte.findByIdAndUpdate(
-//       id,
-//       reporteRemove,
-//       { new: true }
-//     );
-//     if (!reporteEliminado) throw new CustomError("Reporte no encontrado", 404);
-//     res.status(200).json({ message: "Reporte eliminado con éxito" });
-//   } catch (error) {
-//     res
-//       .status(error.code || 500)
-//       .json({ message: error.message || "algo explotó :|" });
-//   }
-// };
+const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
+  try {
+    const idBoletin = req.params.id;
+    const rutaArchivo = await construirRutaArchivo(idBoletin);
 
-// const getMesYTotalDeReportesVisualizadorYSupervisor = async (req, res) => {
-//   try {
-//     const fechaActual = new Date();
-//     const mesActual = fechaActual.toLocaleString("es-ES", { month: "short" }); // Obtenemos el nombre del mes abreviado en español
+    //VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
 
-//     const fechaPasada = new Date();
-//     fechaPasada.setMonth(fechaPasada.getMonth() - 1); // Restar 1 al mes actual
-//     const mesAnterior = fechaActual.toLocaleString("es-ES", { month: "short" });
+    const sftp = await conectarSFTP();
 
-//     if (req.user.tipoDeUsuario == "visualizador") {
-//       const reportesTotalMes = await Reporte.find({
-//         estado: true,
-//         usuario: req.user._id,
-//         fecha: { $regex: new RegExp(mesActual, "i") },
-//       }).populate("categoria");
+    if (!sftp || !sftp.sftp) {
+      throw new Error(
+        "Error de conexión SFTP: no se pudo establecer la conexión correctamente"
+      );
+    }
+    const remoteFilePath = rutaArchivo;
+    const fileBuffer = await sftp.get(remoteFilePath);
+    res.send(fileBuffer);
+    await sftp.end();
+  } catch (error) {
+    await sftp.end();
+    console.error("Error al obtener archivos de un boletín:", error);
+    res.status(500).json({ message: "Error al obtener archivos del boletín" });
+  }
+};
 
-//       const reportesTotalMesPasado = await Reporte.find({
-//         estado: true,
-//         usuario: req.user._id,
-//         fecha: { $regex: new RegExp(mesAnterior, "i") },
-//       }).populate("categoria");
+const construirRutaArchivo = async (idBoletin) => {
+  const boletin = await obtenerDatosDelBoletin(idBoletin);
+ 
+  //CAMBIAR RUTA SERVIDOR PRODUCCION
+ 
+  const rutaArchivo = `/home/boletin/${boletin.fecha_publicacion
+    .toISOString()
+    .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
+    .toISOString()
+    .slice(0, 10)}.pdf`;
 
-//       const reportesTotal = await Reporte.find({
-//         estado: true,
-//         usuario: req.user._id,
-//       }).populate("categoria");
+  return rutaArchivo;
+};
 
-//       res.status(200).json({
-//         totalMes: reportesTotalMes,
-//         totalHistorico: reportesTotal,
-//         totalMesPasado: reportesTotalMesPasado,
-//       });
-//     } else if (req.user.tipoDeUsuario == "supervisor") {
-//       const despachosTotalMes = await Reporte.find({
-//         estado: true,
-//         despacho: { $ne: null },
-//         fecha: { $regex: new RegExp(mesActual, "i") },
-//       })
-//         .populate({
-//           path: "despacho",
-//           populate: {
-//             path: "usuario",
-//             model: "User",
-//           },
-//         })
-//         .populate("categoria");
+const obtenerDatosDelBoletin = async (idBoletin) => {
+  const db = await conectarMySql();
+  const [boletines] = await db.query(
+    `SELECT * FROM boletin WHERE id_boletin = ${idBoletin} AND habilita = 1`
+  );
+  if (boletines.length > 0) {
+    return boletines[0];
+  } else {
+    await db.end();
+    console.error("Error al obtener archivos de un boletín:", error);
+    throw new Error("No se encontraron boletines para el ID especificado");
+  }
+};
 
-//       const despachosTotalMesPasado = await Reporte.find({
-//         estado: true,
-//         despacho: { $ne: null },
-//         fecha: { $regex: new RegExp(mesAnterior, "i") },
-//       })
-//         .populate({
-//           path: "despacho",
-//           populate: {
-//             path: "usuario",
-//             model: "User",
-//           },
-//         })
-//         .populate("categoria");
 
-//       const despachosTotal = await Reporte.find({
-//         estado: true,
-//         despacho: { $ne: null },
-//       })
-//         .populate({
-//           path: "despacho",
-//           populate: {
-//             path: "usuario",
-//             model: "User",
-//           },
-//         })
-//         .populate("categoria");
+const putBoletinesMySql = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    const {
+      id_boletin,
+      nro_boletin,
+      fecha_publicacion,
+      habilita,
+      normasAgregadasEditar,
+    } = req.body;
 
-//       res.status(200).json({
-//         totalMes: despachosTotalMes.filter(
-//           (rep) => rep.despacho.usuario._id.toString() == req.user._id
-//         ),
-//         totalHistorico: despachosTotal.filter(
-//           (rep) => rep.despacho.usuario._id.toString() == req.user._id
-//         ),
-//         totalMesPasado: despachosTotalMesPasado.filter(
-//           (rep) => rep.despacho.usuario._id.toString() == req.user._id
-//         ),
-//       });
-//     }
-//   } catch (error) {
-//     res
-//       .status(error.code || 500)
-//       .json({ message: error.message || "algo explotó :|" });
-//   }
-// };
+    await db.query(
+      "UPDATE boletin SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
+      [nro_boletin, fecha_publicacion.slice(0, 10), habilita, id_boletin]
+    );
 
-// const getTopTresDespachadosPorMes = async (req, res) => {
-//   try {
-//     const currentDate = new Date();
-//     const currentYear = currentDate.getFullYear();
-//     const currentMonth = currentDate.getMonth();
+    for (const contenido of normasAgregadasEditar) {
+      const { norma, numero, origen, año, habilita, id_contenido_boletin } =
+        contenido;
+      if (id_contenido_boletin > 0) {
+        await db.query(
+          "UPDATE contenido_boletin SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
+          [
+            norma,
+            numero,
+            origen,
+            año.slice(0, 10),
+            habilita,
+            id_contenido_boletin,
+            id_boletin,
+          ]
+        );
+      } else if (id_contenido_boletin < 0) {
+        await db.query(
+          "INSERT INTO contenido_boletin (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
+          [id_boletin, norma, numero, origen, año.slice(0, 10)]
+        );
+      }
+    }
+    res.status(200).json({ message: "Boletín actualizado con éxito" });
+  } catch (error) {
+    console.error("Error al actualizar boletín:", error);
+    res.status(500).json({ message: "Error al actualizar boletín" });
+  }
+};
 
-//     // Filtrar los reportes del mes actual y que tengan el campo 'despacho' definido
-//     let reportesConDespachoYMesActual = await Reporte.find({
-//       estado: true,
-//       createdAt: {
-//         $gte: new Date(currentYear, currentMonth, 1),
-//         $lt: new Date(currentYear, currentMonth + 1, 1),
-//       },
-//       despacho: { $ne: undefined },
-//     }).populate("usuario");
+const postBoletin = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    funcionMulter()(req, res, async (err) => {
+      if (!req.file) {
+        throw new CustomError("Error al cargar el archivo", 400);
+      }
+      let requestData = "";
 
-//     if (req.params.turno !== undefined) {
-//       reportesConDespachoYMesActual = reportesConDespachoYMesActual.filter(
-//         (rep) => obtenerPeriodoDelDiaConHora(rep.fecha) == req.params.turno
-//       );
-//       // reportesConDespachoYMesActual = reportesConDespachoYMesActual.filter(rep => rep.usuario.turno == req.params.turno);
-//     }
+      if (req.body.requestData === undefined) {
+        requestData = JSON.parse(req.body.requestData[1]);
+      } else {
+        requestData = JSON.parse(req.body.requestData);
+      }
 
-//     // Crear un mapa para contar los despachos por usuario
-//     const despachosPorUsuario = new Map();
+      const [result] = await db.query(
+        "INSERT INTO boletin (nro_boletin, fecha_publicacion, habilita) VALUES (?, ?, ?)",
+        [
+          requestData.nroBoletin,
+          requestData.fechaPublicacion,
+          requestData.habilita,
+        ]
+      );
+      const nuevoID = result.insertId;
 
-//     reportesConDespachoYMesActual.forEach((rep) => {
-//       const usuarioId = rep.usuario._id.toString();
-//       if (despachosPorUsuario.has(usuarioId)) {
-//         despachosPorUsuario.get(usuarioId).totalDespachos++;
-//       } else {
-//         despachosPorUsuario.set(usuarioId, {
-//           usuario: rep.usuario,
-//           totalDespachos: 1,
-//         });
-//       }
-//     });
+      // const [normas] = await db.query(`SELECT * FROM norma WHERE habilita = 1`);
 
-//     // Ordenar los usuarios por cantidad de despachos
-//     const sortedUsuarios = [...despachosPorUsuario.values()].sort(
-//       (a, b) => b.totalDespachos - a.totalDespachos
-//     );
+      for (const contenido of requestData.arrayContenido) {
+        const { norma, numero, origen, año } = contenido;
+        const idNorma = norma.id_norma;
+        const idOrigen = origen.id_origen;
+        await db.query(
+          "INSERT INTO contenido_boletin (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
+          [nuevoID, idNorma, numero, idOrigen, año]
+        );
+      }
 
-//     // Obtener los detalles de los usuarios con más despachos
-//     const topTresUsuarios = sortedUsuarios.slice(0, 3);
+      // VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
+      
+      const sftp = await conectarSFTP();
 
-//     res.status(200).json({ usuariosConMasDespachos: topTresUsuarios });
-//   } catch (error) {
-//     res
-//       .status(error.code || 500)
-//       .json({ message: error.message || "algo explotó :|" });
-//   }
-// };
+      if (!sftp || !sftp.sftp) {
+        throw new Error(
+          "Error de conexión SFTP: no se pudo establecer la conexión correctamente"
+        );
+      }
+     
+      //CAMBIAR RUTA SERVIDOR PRODUCCION
+      //RUTA PC PEDRO
+      // const rutaArchivo = `C:\\Users\\Programadores\\Desktop\\${requestData.fechaPublicacion.slice(
+      //   0,
+      //   4
+      // )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
+      //   0,
+      //   10
+      // )}.pdf`;
+      //RUTA SERVIDOR DESARROLLO (172.16.8.209)
+     
+      const rutaArchivo = `/home/boletin/${requestData.fechaPublicacion.slice(
+        0,
+        4
+      )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
+        0,
+        10
+      )}.pdf`;
+
+      await sftp.put(req.file.path, rutaArchivo);
+      await sftp.end();
+      await db.end();
+
+      // console.log("El archivo se ha guardado correctamente en", rutaArchivo);
+      res.status(200).json({ message: "Se agregó un nuevo Boletín con éxito" });
+    });
+  } catch (error) {
+    await db.end();
+    console.error("Error al agregar boletín:", error);
+    res.status(500).json({ message: "Error al agregar Boletín" });
+  }
+};
 
 module.exports = {
-  agregarBoletin,
-  getBoletin,
-  // getReportesHistorico,
-  // actualizarReporte,
-  // borrarReporte,
-  // getReportesPodio,
-  // getReportesPaginacion,
-  // getMesYTotalDeReportesVisualizadorYSupervisor,
-  // getTopTresDespachadosPorMes,
+  postBoletin,
+  putBoletinesMySql,
+  getBoletinesMySql,
+  getBuscarNroMySql,
+  getBoletinesListado,
+  getBuscarFechaMySql,
+  getBuscarPorTodoMySql,
+  getBuscarPorTipoMySql,
+  getBuscarPorFechaMySql,
+  getBuscarNroYFechaMySql,
+  getBoletinesContenidoListado,
+  obtenerArchivosDeUnBoletinMySql,
 };
