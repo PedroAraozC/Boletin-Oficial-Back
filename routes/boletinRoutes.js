@@ -13,6 +13,7 @@ const {
   getBuscarPorTipoMySql,
   getBuscarPorFechaMySql,
   getBuscarNroYFechaMySql,
+
   getBoletinesContenidoListado,
   obtenerArchivosDeUnBoletinMySql,
 } = require("../controllers/boletinesControllers");
@@ -20,6 +21,8 @@ const {
 const router = Router();
 
 router.get("/listar", getBoletinesMySql); //MySql
+
+router.get("/listado", getBoletinesListado); //MySql
 router.get("/listado", getBoletinesListado); //MySql
 router.get("/listadoContenido", getBoletinesContenidoListado); //MySql
 router.get("/buscar/:nroBoletin", getBuscarNroMySql); //MySql
