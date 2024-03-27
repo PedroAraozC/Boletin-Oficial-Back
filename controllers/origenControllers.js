@@ -48,9 +48,34 @@ const getOrigenTodo = async (req, res) => {
     }
   };
   
+  const postOrigen = async (req, res) => {
+    try {
+      const db = await conectarMySql();
+      if (!db || !db.query) {
+        throw new CustomError(
+          "Database connection or query function is missing",
+          500
+        );
+      }
+      console.log(req.body);
+  
+      const [result] = await db.query(
+        "INSERT INTO origen_prueba (nombre_origen, habilita) VALUES ( ?, ?)",
+        [req.body.nombre_origen.toUpperCase(), req.body.habilita]
+      );
+  
+      res.json(result);
+      await db.end();
+    } catch (error) {
+      
+      console.error("Error al agregar origen:", error);
+      res.status(500).json({ message: "Error al agregar origen" });
+    }
+  };
   
 module.exports = {
 getOrigenTodo,
 putOrigenListado,
+postOrigen,
   };
   
