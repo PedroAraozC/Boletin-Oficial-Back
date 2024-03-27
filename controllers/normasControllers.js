@@ -1,61 +1,86 @@
-const { conectarMySql } = require('../config/dbMySql');
-const db = conectarMySql();
+const CustomError = require("../utils/customError");
+const { conectarMySql } = require("../config/dbMySql");
 
-const Norma = {};
-
-// Función para obtener todas las normas
-Norma.getAllNormas = async () => {
+const getNormas = async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM norma');
-    return rows;
+    const db = await conectarMySql();
+    if (!db || !db.query) {
+      throw new CustomError(
+        "Database connection or query function is missing",
+        500
+      );
+    }
+    const [normas] = await db.query("SELECT * FROM norma WHERE habilita = 1");
+
+    res.json(normas);
+    await db.end();
   } catch (error) {
-    console.error("Error al obtener las normas:", error);
-    throw error;
+    await db.end();
+    console.error("Error al buscar norma:", error);
+    res.status(500).json({ message: "Error al buscar norma" });
   }
 };
 
-// Función para obtener una norma por su ID
-Norma.getNormaById = async (id) => {
+const putNormasListado = async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM norma WHERE id_norma = ?', [id]);
-    return rows[0];
+    const db = await conectarMySql();
+
+    const { id_norma, tipo_norma, habilita } = req.body;
+
+    await db.query(
+      "UPDATE norma SET id_norma = ?, tipo_norma = ?, habilita = ? WHERE id_norma = ?",
+      [id_norma, tipo_norma.toUpperCase(), habilita, id_norma] // Aquí, se deben pasar los parámetros como una matriz plana
+    );
+
+    res.status(200).json({ message: "Norma actualizada con éxito" });
+    await db.end();
   } catch (error) {
-    console.error("Error al obtener la norma por ID:", error);
-    throw error;
+    await db.end();
+    console.error("Error al actualizar norma:", error);
+    res.status(500).json({ message: "Error al actualizar Norma" });
   }
 };
 
-// Función para crear una nueva norma
-Norma.createNorma = async (tipo_norma, habilita) => {
+const getNormasListado = async (req, res) => {
   try {
-    const [result] = await db.query('INSERT INTO norma (tipo_norma, habilita) VALUES (?, ?)', [tipo_norma, habilita]);
-    return result.insertId;
+    const db = await conectarMySql();
+    if (!db || !db.query) {
+      throw new CustomError(
+        "Database connection or query function is missing",
+        500
+      );
+    }
+    const [normas] = await db.query("SELECT * FROM norma");
+    res.json(normas);
+    await db.end();
   } catch (error) {
-    console.error("Error al crear una nueva norma:", error);
-    throw error;
+    await db.end();
+    console.error("Error al buscar norma:", error);
+    res.status(500).json({ message: "Error al buscar norma" });
   }
 };
 
-// Función para actualizar una norma existente
-Norma.updateNorma = async (id, tipo_norma, habilita) => {
+const postNorma = async (req, res) => {
   try {
-    await db.query('UPDATE norma SET tipo_norma = ?, habilita = ? WHERE id_norma = ?', [tipo_norma, habilita, id]);
-    return true;
+    const db = await conectarMySql();
+    if (!db || !db.query) {
+      throw new CustomError(
+        "Database connection or query function is missing",
+        500
+      );
+    }
+    const [result] = await db.query(
+      "INSERT INTO norma (tipo_norma, habilita) VALUES ( ?, ?)",
+      [req.body.norma.toUpperCase(), req.body.habilita]
+    );
+
+    res.json(result);
+    await db.end();
   } catch (error) {
-    console.error("Error al actualizar la norma:", error);
-    throw error;
+    await db.end();
+    console.error("Error al agregar norma:", error);
+    res.status(500).json({ message: "Error al agregar norma" });
   }
 };
 
-// Función para eliminar una norma
-Norma.deleteNorma = async (id) => {
-  try {
-    await db.query('DELETE FROM norma WHERE id_norma = ?', [id]);
-    return true;
-  } catch (error) {
-    console.error("Error al eliminar la norma:", error);
-    throw error;
-  }
-};
-
-module.exports = Norma;
+module.exports = { getNormas, putNormasListado, getNormasListado, postNorma };

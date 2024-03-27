@@ -1,15 +1,8 @@
-const Boletin = require("../models/boletin");
 const CustomError = require("../utils/customError");
-const path = require("path");
-const ArchivoBoletin = require("../models//archivoBoletin");
-const multer = require("multer");
-const { funcionMulter } = require("../middlewares/multerStorage");
-const fs = require("fs");
-const archivoBoletin = require("../models//archivoBoletin");
 const { conectarMySql } = require("../config/dbMySql");
 const { conectarSFTP } = require("../config/dbwinscp");
+const { funcionMulter } = require("../middlewares/multerStorage");
 
-//mysql
 const getBoletinesMySql = async (req, res) => {
   try {
     const db = await conectarMySql();
@@ -17,9 +10,39 @@ const getBoletinesMySql = async (req, res) => {
       "SELECT * FROM boletin WHERE habilita = 1"
     );
     res.json(boletines);
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines:", error);
     res.status(500).json({ message: "Error al buscar boletines" });
+  }
+};
+
+const getBoletinesListado = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    const [boletines] = await db.query("SELECT * FROM boletin");
+    res.json(boletines);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar boletines:", error);
+    res.status(500).json({ message: "Error al buscar boletines en listado" });
+  }
+};
+
+const getBoletinesContenidoListado = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    const [contenidoBoletines] = await db.query(
+      "SELECT * FROM contenido_boletin WHERE habilita = 1"
+    );
+    res.json(contenidoBoletines);
+    await db.end();
+  } catch (error) {
+    await db.end();
+    console.error("Error al buscar boletines:", error);
+    res.status(500).json({ message: "Error al buscar boletines en listado" });
   }
 };
 
@@ -31,7 +54,9 @@ const getBuscarNroMySql = async (req, res) => {
       `SELECT * FROM boletin WHERE nro_boletin = ${nroBoletin} AND habilita = 1`
     );
     res.json(boletines);
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
   }
@@ -45,7 +70,9 @@ const getBuscarFechaMySql = async (req, res) => {
       `SELECT * FROM boletin WHERE fecha_publicacion = '${fechaBoletin}' AND habilita = 1`
     );
     res.json(boletines);
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
   }
@@ -67,94 +94,44 @@ const getBuscarNroYFechaMySql = async (req, res) => {
       );
       res.json(boletines);
     }
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
   }
 };
 
 const getBuscarPorTipoMySql = async (req, res) => {
-  const { tipo, parametro } = req.params;
+  const { idNorma, parametro } = req.params;
   let boletines = [];
-  
   try {
-    switch (tipo) {
-      case "Decreto":
-        if (!parametro || parametro === "undefined" || parametro === "") {
-          const db = await conectarMySql();
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 1
-            AND b.habilita = 1;`
-          );
-          break;
-        } else {
-          const db = await conectarMySql();
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 1
-            AND b.habilita = 1
-            AND cb.nro_norma = '${parametro}'; `
-          );
-          break;
-        }
+    const db = await conectarMySql();
+    const [norma] = await db.query(
+      `SELECT tipo_norma FROM norma WHERE id_norma = ${idNorma}`
+    );
 
-      case "Ordenanza":
-        if (!parametro || parametro === "undefined" || parametro === "") {
-          const db = await conectarMySql();
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 2
-            AND b.habilita = 1;`
-          );
-          break;
-        } else {
-          const db = await conectarMySql();
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 2
-            AND b.habilita = 1
-            AND cb.nro_norma = '${parametro}'; `
-          );
-          break;
-        }
-
-      case "Resolucion":
-        if (!parametro || parametro === "undefined" || parametro === "") {
-          const db = await conectarMySql();
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 3
-            AND b.habilita = 1;`
-          );
-          break;
-        } else {
-          const db = await conectarMySql();
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 3
-            AND b.habilita = 1
-            AND cb.nro_norma = '${parametro}'; `
-          );
-          break;
-        }
-      default:
-        throw new CustomError("Tipo de búsqueda no válido", 400);
+    if (!norma) {
+      throw new CustomError("ID de norma no válido", 400);
     }
 
+    let query = `
+      SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+      FROM contenido_boletin cb
+      JOIN boletin b ON cb.id_boletin = b.id_boletin
+      WHERE cb.id_norma = ?
+      AND b.habilita = 1
+    `;
+
+    if (parametro && parametro !== "undefined" && parametro !== "") {
+      query += ` AND cb.nro_norma = '${parametro}'`;
+    }
+
+    const [result] = await db.query(query, [idNorma]);
+    boletines = result;
+
     res.json(boletines);
+    await db.end();
   } catch (error) {
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
@@ -162,62 +139,41 @@ const getBuscarPorTipoMySql = async (req, res) => {
 };
 
 const getBuscarPorFechaMySql = async (req, res) => {
-  const { fecha, tipo } = req.params;
+  const { fecha, idNorma } = req.params;
   let boletines = [];
   try {
-    if ((!tipo || tipo === "undefined" || tipo === "") && fecha === "") {
-      throw new CustomError("Tipo de búsqueda no válido", 400);
-    } else if ((!tipo || tipo === "undefined" || tipo === "") && fecha !== "") {
-      const db = await conectarMySql();
-      [boletines] = await db.query(
-        `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-        FROM contenido_boletin cb
-        JOIN boletin b ON cb.id_boletin = b.id_boletin
-        WHERE cb.fecha_norma = '${fecha}'
-        AND b.habilita = 1;`
-      );
-    } else if ((tipo !== "undefined" || tipo !== "") && fecha !== "") {
-      const db = await conectarMySql();
-      switch (tipo) {
-        case "Decreto":
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 1
-            AND b.habilita = 1
-            AND cb.fecha_norma = '${fecha}'; `
-          );
-          break;
-
-        case "Ordenanza":
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 2
-            AND b.habilita = 1
-            AND cb.fecha_norma = '${fecha}'; `
-          );
-          break;
-
-        case "Resolucion":
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 3
-            AND b.habilita = 1
-            AND cb.fecha_norma = '${fecha}'; `
-          );
-          break;
-        default:
-          throw new CustomError("Tipo de búsqueda no válido", 400);
-      }
+    if (!fecha && (!idNorma || idNorma === "undefined" || idNorma === "")) {
+      throw new CustomError("Fecha o ID de norma no válidos", 400);
     }
 
+    const db = await conectarMySql();
+    let query = `
+      SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+      FROM contenido_boletin cb
+      JOIN boletin b ON cb.id_boletin = b.id_boletin
+      WHERE b.habilita = 1
+    `;
+
+    if (fecha && fecha !== "undefined" && fecha !== "") {
+      query += ` AND cb.fecha_norma = '${fecha}'`;
+    }
+
+    if (idNorma && idNorma !== "undefined" && idNorma !== "") {
+      query += ` AND cb.id_norma = ?`;
+    }
+
+    let params = [];
+    if (idNorma && idNorma !== "undefined" && idNorma !== "") {
+      params.push(idNorma);
+    }
+
+    const [result] = await db.query(query, params);
+    boletines = result;
+
     res.json(boletines);
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
   }
@@ -228,63 +184,54 @@ const getBuscarPorTodoMySql = async (req, res) => {
     const { fecha, tipo, nroNorma } = req.params;
     let boletines = [];
     const db = await conectarMySql();
-    console.log(req.params);
 
     if (
       (!tipo || tipo === "undefined" || tipo === "") &&
-      fecha === "" &&
-      (nroNorma === "" || nroNorma === undefined || !nroNorma)
+      (!fecha || fecha === "undefined" || fecha === "") &&
+      (!nroNorma || nroNorma === "undefined" || nroNorma === "")
     ) {
-      throw new CustomError("Tipo de búsqueda no válido", 400);
-    } else if (
-      (tipo !== "undefined" || tipo !== "") &&
-      fecha !== "" &&
-      (nroNorma !== "" || nroNorma !== undefined)
-    ) {
-      switch (tipo) {
-        case "Decreto":
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-            FROM contenido_boletin cb
-            JOIN boletin b ON cb.id_boletin = b.id_boletin
-            WHERE cb.id_norma = 1
-            AND b.habilita = 1
-            AND cb.fecha_norma = '${fecha}'
-            AND cb.nro_norma = '${nroNorma}'; `
-          );
-
-          break;
-
-        case "Ordenanza":
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-              FROM contenido_boletin cb
-              JOIN boletin b ON cb.id_boletin = b.id_boletin
-              WHERE cb.id_norma = 2
-              AND b.habilita = 1
-              AND cb.fecha_norma = '${fecha}'
-              AND cb.nro_norma = '${nroNorma}'; `
-          );
-          break;
-
-        case "Resolucion":
-          [boletines] = await db.query(
-            `SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
-              FROM contenido_boletin cb
-              JOIN boletin b ON cb.id_boletin = b.id_boletin
-              WHERE cb.id_norma = 3
-              AND b.habilita = 1
-              AND cb.fecha_norma = '${fecha}'
-              AND cb.nro_norma = '${nroNorma}'; `
-          );
-          break;
-        default:
-          throw new CustomError("Tipo de búsqueda no válido", 400);
-      }
+      throw new CustomError("Parámetros de búsqueda no válidos", 400);
     }
 
+    let query = `
+      SELECT DISTINCT b.id_boletin, b.nro_boletin, b.fecha_publicacion
+      FROM contenido_boletin cb
+      JOIN boletin b ON cb.id_boletin = b.id_boletin
+      WHERE b.habilita = 1
+    `;
+
+    if (tipo && tipo !== "undefined" && tipo !== "") {
+      query += ` AND cb.id_norma = ?`;
+    }
+
+    if (fecha && fecha !== "undefined" && fecha !== "") {
+      query += ` AND cb.fecha_norma = ?`;
+    }
+
+    if (nroNorma && nroNorma !== "undefined" && nroNorma !== "") {
+      query += ` AND cb.nro_norma = ?`;
+    }
+
+    let params = [];
+    if (tipo && tipo !== "undefined" && tipo !== "") {
+      params.push(tipo);
+    }
+
+    if (fecha && fecha !== "undefined" && fecha !== "") {
+      params.push(fecha);
+    }
+
+    if (nroNorma && nroNorma !== "undefined" && nroNorma !== "") {
+      params.push(nroNorma);
+    }
+
+    const [result] = await db.query(query, params);
+    boletines = result;
+
     res.json(boletines);
+    await db.end();
   } catch (error) {
+    await db.end();
     console.error("Error al buscar boletines: ", error);
     res.status(500).json({ message: "Error al buscar boletines" });
   }
@@ -294,6 +241,9 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
   try {
     const idBoletin = req.params.id;
     const rutaArchivo = await construirRutaArchivo(idBoletin);
+
+    //VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
+
     const sftp = await conectarSFTP();
 
     if (!sftp || !sftp.sftp) {
@@ -306,6 +256,7 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
     res.send(fileBuffer);
     await sftp.end();
   } catch (error) {
+    await sftp.end();
     console.error("Error al obtener archivos de un boletín:", error);
     res.status(500).json({ message: "Error al obtener archivos del boletín" });
   }
@@ -313,7 +264,9 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
 
 const construirRutaArchivo = async (idBoletin) => {
   const boletin = await obtenerDatosDelBoletin(idBoletin);
-
+ 
+  //CAMBIAR RUTA SERVIDOR PRODUCCION
+ 
   const rutaArchivo = `/home/boletin/${boletin.fecha_publicacion
     .toISOString()
     .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
@@ -331,370 +284,150 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
   if (boletines.length > 0) {
     return boletines[0];
   } else {
+    await db.end();
     console.error("Error al obtener archivos de un boletín:", error);
     throw new Error("No se encontraron boletines para el ID especificado");
   }
 };
 
-// //Mongo
-// const getBuscar = async (req, res) => {
-//   const { nroBoletin } = req.params;
-//   console.log("+++", nroBoletin);
-//   try {
-//     const boletines = await Boletin.find({ estado: true, nroBoletin });
-//     res.json(boletines);
-//   } catch (error) {
-//     console.error("Error al buscar boletines: ", error);
-//     res.status(500).json({ message: "Error al buscar boletines" });
-//   }
-// };
 
-const agregarBoletin = async (req, res) => {
+const putBoletinesMySql = async (req, res) => {
   try {
+    const db = await conectarMySql();
+    const {
+      id_boletin,
+      nro_boletin,
+      fecha_publicacion,
+      habilita,
+      normasAgregadasEditar,
+    } = req.body;
+
+    await db.query(
+      "UPDATE boletin SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
+      [nro_boletin, fecha_publicacion.slice(0, 10), habilita, id_boletin]
+    );
+
+    for (const contenido of normasAgregadasEditar) {
+      const { norma, numero, origen, año, habilita, id_contenido_boletin } =
+        contenido;
+      if (id_contenido_boletin > 0) {
+        await db.query(
+          "UPDATE contenido_boletin SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
+          [
+            norma,
+            numero,
+            origen,
+            año.slice(0, 10),
+            habilita,
+            id_contenido_boletin,
+            id_boletin,
+          ]
+        );
+      } else if (id_contenido_boletin < 0) {
+        await db.query(
+          "INSERT INTO contenido_boletin (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
+          [id_boletin, norma, numero, origen, año.slice(0, 10)]
+        );
+      }
+    }
+    res.status(200).json({ message: "Boletín actualizado con éxito" });
+  } catch (error) {
+    console.error("Error al actualizar boletín:", error);
+    res.status(500).json({ message: "Error al actualizar boletín" });
+  }
+};
+
+const postBoletin = async (req, res) => {
+  try {
+    const db = await conectarMySql();
     funcionMulter()(req, res, async (err) => {
       if (!req.file) {
         throw new CustomError("Error al cargar el archivo", 400);
       }
-
-      console.log(req.body, "16");
-      console.log(req.file, "17");
-
       let requestData = "";
 
       if (req.body.requestData === undefined) {
         requestData = JSON.parse(req.body.requestData[1]);
-        console.log("hola");
       } else {
         requestData = JSON.parse(req.body.requestData);
-        console.log("adios");
       }
 
-      // console.log(values.JSON.parse(req.body.requestData[1]), "29");
-      console.log(req.body.requestData[1], "30");
-      console.log(requestData, "31");
-
-      const {
-        nroBoletin,
-        fechaBoletin,
-        nroDecreto,
-        nroOrdenanza,
-        nroResolucion,
-      } = requestData;
-
-      const newBoletin = new Boletin({
-        nroBoletin,
-        fechaBoletin,
-        nroDecreto,
-        nroOrdenanza,
-        nroResolucion,
-      });
-
-      const boletinGuardado = await newBoletin.save();
-      if (!req.file) {
-        throw new CustomError("File not provided", 400);
-      }
-      console.log(typeof req.file.fieldname, "51");
-
-      const rutaArchivo = path.join(
-        "C:\\Users\\Programadores\\Desktop\\Boletin-Oficial-Back\\archivoBoletin",
-        // "C:\\Users\\Administrador\\Desktop\\Ditec-Code\\boletin-oficial-back\\archivoBoletin",
-        req.file.filename
+      const [result] = await db.query(
+        "INSERT INTO boletin (nro_boletin, fecha_publicacion, habilita) VALUES (?, ?, ?)",
+        [
+          requestData.nroBoletin,
+          requestData.fechaPublicacion,
+          requestData.habilita,
+        ]
       );
+      const nuevoID = result.insertId;
 
-      const newArchivoBoletin = new ArchivoBoletin({
-        rutaArchivo,
-        archivoBoletin: boletinGuardado._id,
-      });
+      // const [normas] = await db.query(`SELECT * FROM norma WHERE habilita = 1`);
 
-      await newArchivoBoletin.save();
+      for (const contenido of requestData.arrayContenido) {
+        const { norma, numero, origen, año } = contenido;
+        const idNorma = norma.id_norma;
+        const idOrigen = origen.id_origen;
+        await db.query(
+          "INSERT INTO contenido_boletin (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
+          [nuevoID, idNorma, numero, idOrigen, año]
+        );
+      }
 
+      // VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
+      
+      const sftp = await conectarSFTP();
+
+      if (!sftp || !sftp.sftp) {
+        throw new Error(
+          "Error de conexión SFTP: no se pudo establecer la conexión correctamente"
+        );
+      }
+     
+      //CAMBIAR RUTA SERVIDOR PRODUCCION
+      //RUTA PC PEDRO
+      // const rutaArchivo = `C:\\Users\\Programadores\\Desktop\\${requestData.fechaPublicacion.slice(
+      //   0,
+      //   4
+      // )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
+      //   0,
+      //   10
+      // )}.pdf`;
+      //RUTA SERVIDOR DESARROLLO (172.16.8.209)
+     
+      const rutaArchivo = `/home/boletin/${requestData.fechaPublicacion.slice(
+        0,
+        4
+      )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
+        0,
+        10
+      )}.pdf`;
+
+      await sftp.put(req.file.path, rutaArchivo);
+      await sftp.end();
+      await db.end();
+
+      // console.log("El archivo se ha guardado correctamente en", rutaArchivo);
       res.status(200).json({ message: "Se agregó un nuevo Boletín con éxito" });
     });
   } catch (error) {
+    await db.end();
     console.error("Error al agregar boletín:", error);
     res.status(500).json({ message: "Error al agregar Boletín" });
   }
 };
 
-// const getBoletin = async (req, res) => {
-//   try {
-//     const boletines = await Boletin.find({ estado: true });
-//     res.json(boletines);
-//   } catch (error) {
-//     console.error("Error al buscar boletines:", error);
-//     res.status(500).json({ message: "Error al buscar boletines" });
-//   }
-// };
-
-// const obtenerArchivosDeUnBoletin = async (req, res) => {
-//   try {
-//     const idBoletin = req.params.id;
-//     const archivosBoletin = await ArchivoBoletin.find({
-//       archivoBoletin: idBoletin,
-//     });
-
-//     if (archivosBoletin.length === 0) {
-//       return res.status(404).json({
-//         message: "No se encontraron archivos para el boletin especificado",
-//       });
-//     } else if (archivosBoletin.length === 1) {
-//       const archivo = archivosBoletin[0];
-//       if (fs.existsSync(archivo.rutaArchivo)) {
-//         return res.sendFile(archivo.rutaArchivo);
-//       } else {
-//         console.log(archivosBoletin);
-//         console.log(archivo.rutaArchivo);
-//         throw new CustomError("Archivo no encontrado", 404);
-//       }
-//     } else {
-//       throw new CustomError("Boletín con más de un archivo adjunto", 400);
-//     }
-//   } catch (error) {
-//     console.error("Error al obtener archivos de un boletín:", error);
-
-//     res
-//       .status(error.code || 500)
-//       .json({ message: error.message || "Algo explotó :|" });
-//   }
-// };
-
-// const buscarBoletin = async (req, res, query) => {
-//   try {
-//     const result = await query.exec();
-//     res.json(result);
-//   } catch (error) {
-//     console.error("Error al buscar boletines:", error);
-//     res.status(500).json({ message: "Error al buscar boletines" });
-//   }
-// };
-
-// // probando otro buscador 01 y buscadormio2
-// const getBuscarFecha = async (req, res) => {
-//   const { fechaBoletin } = req.params;
-//   console.log("***", fechaBoletin);
-
-//   try {
-//     const boletines = await Boletin.find({ estado: true, fechaBoletin });
-//     res.json(boletines);
-//   } catch (error) {
-//     console.error("Error al buscar boletines: ", error);
-//     res.status(500).json({ message: "Error al buscar boletines" });
-//   }
-// };
-
-// const getBuscarPorTipo = async (req, res) => {
-//   const { tipo, parametro } = req.params;
-//   let boletines = [];
-//   try {
-//     switch (tipo) {
-//       case "Decreto":
-//         if (!parametro || parametro === "undefined" || parametro === "") {
-//           boletines = await Boletin.find({
-//             estado: true, // Si deseas buscar solo boletines activos
-//             nroDecreto: { $exists: true, $ne: [] },
-//           });
-//           break;
-//         } else {
-//           boletines = await Boletin.find({
-//             estado: true, // Si deseas buscar solo boletines activos
-//             nroDecreto: { $in: [parametro] },
-//           });
-//           break;
-//         }
-
-//       case "Ordenanza":
-//         console.log(parametro, "175");
-//         if (!parametro || parametro === "undefined" || parametro === "") {
-//           console.log(parametro, "177");
-//           boletines = await Boletin.find({
-//             estado: true, // Si deseas buscar solo boletines activos
-//             nroOrdenanza: { $exists: true, $ne: [] },
-//           });
-//           break;
-//         } else {
-//           console.log(parametro, "184");
-
-//           boletines = await Boletin.find({
-//             estado: true, // Si deseas buscar solo boletines activos
-//             nroOrdenanza: { $in: [parametro] },
-//           });
-//           break;
-//         }
-
-//       case "Resolucion":
-//         if (!parametro || parametro === "undefined" || parametro === "") {
-//           boletines = await Boletin.find({
-//             estado: true, // Si deseas buscar solo boletines activos
-//             nroResolucion: { $exists: true, $ne: [] },
-//           });
-//           break;
-//         } else {
-//           boletines = await Boletin.find({
-//             estado: true, // Si deseas buscar solo boletines activos
-//             nroResolucion: { $in: [parametro] },
-//           });
-//           break;
-//         }
-//       default:
-//         throw new CustomError("Tipo de búsqueda no válido", 400);
-//     }
-
-//     res.json(boletines);
-//   } catch (error) {
-//     console.error("Error al buscar boletines: ", error);
-//     res.status(500).json({ message: "Error al buscar boletines" });
-//     console.log("value.parametro, value.tipo");
-//   }
-// };
-
-// const getBuscarPorFecha = async (req, res) => {
-//   const { fecha, tipo } = req.params;
-//   let boletines = [];
-//   console.log(req.params);
-
-//   try {
-//     if ((!tipo || tipo === "undefined" || tipo === "") && fecha === "") {
-//       throw new CustomError("Tipo de búsqueda no válido", 400);
-//     } else if ((!tipo || tipo === "undefined" || tipo === "") && fecha !== "") {
-//       boletines = await Boletin.find({
-//         estado: true,
-//         fechaBoletin: fecha,
-//       });
-//     } else if ((tipo !== "undefined" || tipo !== "") && fecha !== "") {
-//       switch (tipo) {
-//         case "Decreto":
-//           boletines = await Boletin.find({
-//             estado: true, // Si deseas buscar solo boletines activos
-//             nroDecreto: { $exists: true, $ne: [] },
-//             fechaBoletin: fecha,
-//           });
-//           break;
-
-//         case "Ordenanza":
-//           boletines = await Boletin.find({
-//             estado: true, // Si deseas buscar solo boletines activos
-//             nroOrdenanza: { $exists: true, $ne: [] },
-//             fechaBoletin: fecha,
-//           });
-//           break;
-
-//         case "Resolucion":
-//           boletines = await Boletin.find({
-//             estado: true, // Si deseas buscar solo boletines activos
-//             nroResolucion: { $exists: true, $ne: [] },
-//             fechaBoletin: fecha,
-//           });
-//           break;
-//         default:
-//           throw new CustomError("Tipo de búsqueda no válido", 400);
-//       }
-//     }
-
-//     res.json(boletines);
-//   } catch (error) {
-//     console.error("Error al buscar boletines: ", error);
-//     res.status(500).json({ message: "Error al buscar boletines" });
-//   }
-// };
-
-// const getBuscarNroYFecha = async (req, res) => {
-//   const { nroBoletin, fechaBoletin } = req.params;
-//   console.log("Número de Boletín:", nroBoletin);
-//   console.log("Fecha de Boletín:", fechaBoletin);
-//   try {
-//     let query = Boletin.find();
-//     if (nroBoletin !== undefined && fechaBoletin !== undefined) {
-//       query = query.where({ nroBoletin, fechaBoletin });
-//     } else {
-//       // Agregar condiciones individuales si solo uno de los parámetros está presente
-//       if (nroBoletin !== undefined) {
-//         query = query.where({ nroBoletin });
-//       }
-
-//       if (fechaBoletin !== undefined) {
-//         query = query.where({ fechaBoletin });
-//       }
-//     }
-
-//     const boletines = await query.exec();
-//     res.json(boletines);
-//   } catch (error) {
-//     console.error("Error al buscar boletines: ", error);
-//     res.status(500).json({ message: "Error al buscar boletines" });
-//   }
-// };
-
-// const getBuscarPorTodo = async (req, res) => {
-//   const { fecha, tipo, nroNorma } = req.params;
-//   let boletines = [];
-//   console.log(req.params);
-
-//   try {
-//     if (
-//       (!tipo || tipo === "undefined" || tipo === "") &&
-//       fecha === "" &&
-//       (nroNorma === "" || nroNorma === undefined || !nroNorma)
-//     ) {
-//       throw new CustomError("Tipo de búsqueda no válido", 400);
-//     } else if (
-//       (tipo !== "undefined" || tipo !== "") &&
-//       fecha !== "" &&
-//       (nroNorma !== "" || nroNorma !== undefined)
-//     ) {
-//       switch (tipo) {
-//         case "Decreto":
-//           boletines = await Boletin.find({
-//             estado: true, // Si deseas buscar solo boletines activos
-//             nroDecreto: { $in: [nroNorma] },
-//             fechaBoletin: fecha,
-//           });
-
-//           break;
-
-//         case "Ordenanza":
-//           boletines = await Boletin.find({
-//             estado: true, // Si deseas buscar solo boletines activos
-//             nroOrdenanza: { $in: [nroNorma] },
-//             fechaBoletin: fecha,
-//           });
-//           break;
-
-//         case "Resolucion":
-//           boletines = await Boletin.find({
-//             estado: true, // Si deseas buscar solo boletines activos
-//             nroResolucion: { $in: [nroNorma] },
-//             fechaBoletin: fecha,
-//           });
-
-//           break;
-//         default:
-//           throw new CustomError("Tipo de búsqueda no válido", 400);
-//       }
-//     }
-
-//     res.json(boletines);
-//   } catch (error) {
-//     console.error("Error al buscar boletines: ", error);
-//     res.status(500).json({ message: "Error al buscar boletines" });
-//   }
-// };
-
 module.exports = {
-  agregarBoletin,
+  postBoletin,
+  putBoletinesMySql,
   getBoletinesMySql,
   getBuscarNroMySql,
+  getBoletinesListado,
   getBuscarFechaMySql,
-  getBuscarNroYFechaMySql,
+  getBuscarPorTodoMySql,
   getBuscarPorTipoMySql,
   getBuscarPorFechaMySql,
-  getBuscarPorTodoMySql,
+  getBuscarNroYFechaMySql,
+  getBoletinesContenidoListado,
   obtenerArchivosDeUnBoletinMySql,
-  // getBoletin,
-  // getBuscar,
-  // getBuscarFecha,
-  // getBuscarNroYFecha,
-  // getBuscarPorTipo,
-  // getBuscarPorFecha,
-  // getBuscarPorTodo,
-  // obtenerArchivosDeUnBoletin,
 };

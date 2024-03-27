@@ -1,52 +1,41 @@
 const { Router } = require("express");
 const { funcionMulter } = require("../middlewares/multerStorage");
 const {
-  agregarBoletin,
-  obtenerArchivosDeUnBoletin,
+  postBoletin,
+  putBoletinesMySql,
   getBoletinesMySql,
   getBuscarNroMySql,
   getBuscarFechaMySql,
-  getBuscarNroYFechaMySql,
+  getBoletinesListado,
+  getBuscarPorTodoMySql,
   getBuscarPorTipoMySql,
   getBuscarPorFechaMySql,
-  getBuscarPorTodoMySql,
+  getBuscarNroYFechaMySql,
+  getBoletinesContenidoListado,
   obtenerArchivosDeUnBoletinMySql,
-  // getBoletin,
-  // getBuscar,
-  // getBuscarFecha,
-  // getBuscarNroYFecha,
-  // getBuscarPorTipo,
-  // getBuscarPorFecha,
-  // getBuscarPorTodo,
 } = require("../controllers/boletinesControllers");
 
 const router = Router();
 
-router.get("/listar", getBoletinesMySql);                                             //MySql
-// router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletin);                    //mongo
-router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletinMySql);                  //MySql
-router.get("/buscar/:nroBoletin", getBuscarNroMySql);                                 //MySql
-router.get("/buscarFecha/:fechaBoletin", getBuscarFechaMySql);                        //MySql
+router.get("/listar", getBoletinesMySql); 
+
+router.get("/listado", getBoletinesListado); 
+router.get("/listado", getBoletinesListado); 
+router.get("/listadoContenido", getBoletinesContenidoListado); 
+router.get("/buscar/:nroBoletin", getBuscarNroMySql); 
+router.get("/buscarFecha/:fechaBoletin", getBuscarFechaMySql); 
+router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletinMySql); 
 router.get(
   "/buscarNroYFecha/:nroBoletin/:fechaBoletin",
   getBuscarNroYFechaMySql
-);                                                                                    //MySql
-router.get("/buscarPorTipo/:tipo/:parametro", getBuscarPorTipoMySql);                 //MySql
-router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFechaMySql);                   //MySql
-router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql);           //MySql
-// router.get("/listar", getBoletin);                                                 //mongo
-// router.get("/buscar/:nroBoletin", getBuscar);                                      //mongo
-// router.get("/buscarFecha/:fechaBoletin", getBuscarFecha);                          //mongo
-// router.get("/buscarNroYFecha/:nroBoletin/:fechaBoletin", getBuscarNroYFecha);      //mongo
-// router.get("/buscarPorTipo/:tipo/:parametro", getBuscarPorTipo);                   //mongo
-// router.get("/buscarPorFecha/:fecha/:tipo", getBuscarPorFecha);                     //mongo
-// router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodo);             //mongo
+); 
+router.get("/buscarPorFecha/:fecha/:idNorma", getBuscarPorFechaMySql); 
+router.get("/buscarPorTipo/:idNorma/:parametro", getBuscarPorTipoMySql); 
+router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql); 
 
-router.post("/alta", agregarBoletin);
-router.post("/subir-archivo", funcionMulter);
+router.post("/alta", postBoletin); 
+router.post("/subir-archivo", funcionMulter); 
+
+router.put("/editar", putBoletinesMySql); 
 
 module.exports = router;
-
-// router.get("/buscarDecreto/:nroDecreto", getBuscarDecreto);
-// router.get("/buscarOrdenanza/:nroOrdenanza", getBuscarOrdenanza);
-// router.get("/buscarResolucion/:nroResolucion", getBuscarResolucion);
