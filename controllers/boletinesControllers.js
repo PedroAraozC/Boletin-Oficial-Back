@@ -3,7 +3,6 @@ const { conectarMySql } = require("../config/dbMySql");
 const { conectarSFTP } = require("../config/dbwinscp");
 const { funcionMulter } = require("../middlewares/multerStorage");
 
-//mysql
 const getBoletinesMySql = async (req, res) => {
   try {
     const db = await conectarMySql();
@@ -22,12 +21,7 @@ const getBoletinesMySql = async (req, res) => {
 const getBoletinesListado = async (req, res) => {
   try {
     const db = await conectarMySql();
-    const [boletines] = await db.query("SELECT * FROM boletin_prueba");
-    // const [contenidoBoletines] = await db.query(
-    //   "SELECT * FROM contenido_boletin_prueba"
-    // );
-    // const data ={ boletines: boletines, contenidoBoletines: contenidoBoletines}
-    // console.log(data)
+    const [boletines] = await db.query("SELECT * FROM boletin");
     res.json(boletines);
     await db.end();
   } catch (error) {
@@ -40,11 +34,8 @@ const getBoletinesListado = async (req, res) => {
 const getBoletinesContenidoListado = async (req, res) => {
   try {
     const db = await conectarMySql();
-    // const [boletines] = await db.query(
-    //   "SELECT * FROM boletin_prueba"
-    // );
     const [contenidoBoletines] = await db.query(
-      "SELECT * FROM contenido_boletin_prueba WHERE habilita = 1"
+      "SELECT * FROM contenido_boletin WHERE habilita = 1"
     );
     res.json(contenidoBoletines);
     await db.end();
@@ -52,26 +43,6 @@ const getBoletinesContenidoListado = async (req, res) => {
     await db.end();
     console.error("Error al buscar boletines:", error);
     res.status(500).json({ message: "Error al buscar boletines en listado" });
-  }
-};
-
-const getOrigen = async (req, res) => {
-  try {
-    const db = await conectarMySql();
-    if (!db || !db.query) {
-      throw new CustomError(
-        "Database connection or query function is missing",
-        500
-      );
-    }
-    const [origen] = await db.query("SELECT * FROM origen WHERE habilita = 1");
-    // console.log([origen]);
-    res.json(origen);
-    await db.end();
-  } catch (error) {
-    await db.end();
-    console.error("Error al buscar origen:", error);
-    res.status(500).json({ message: "Error al buscar origen" });
   }
 };
 
@@ -270,7 +241,9 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
   try {
     const idBoletin = req.params.id;
     const rutaArchivo = await construirRutaArchivo(idBoletin);
+
     //VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
+
     const sftp = await conectarSFTP();
 
     if (!sftp || !sftp.sftp) {
@@ -291,7 +264,9 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
 
 const construirRutaArchivo = async (idBoletin) => {
   const boletin = await obtenerDatosDelBoletin(idBoletin);
+ 
   //CAMBIAR RUTA SERVIDOR PRODUCCION
+ 
   const rutaArchivo = `/home/boletin/${boletin.fecha_publicacion
     .toISOString()
     .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
@@ -315,31 +290,10 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
   }
 };
 
-// const postBoletinGuardar = async (req, res) => {
-//   try {
-//     const db = await conectarMySql();
-//     const {id_boletin, nro_boletin, fecha_publicacion, habilita } = req.body;
-
-//     const [result] = await db.query(
-//       "INSERT INTO boletin id_boletin = ?, nro_boletin = ?, fecha_publicacion = ?, habilita = ? ",
-//       [id_boletin,nro_boletin, fecha_publicacion, habilita]
-//     );
-
-//     console.log('Cambios guardados correctamente:', result);
-
-//     // Puedes enviar una respuesta al frontend si lo necesitas
-//     res.status(200).json({ message: 'Cambios guardados correctamente' });
-//   } catch (error) {
-//     console.error('Error al guardar cambios:', error);
-//     // Puedes enviar un código de error y un mensaje al frontend si lo necesitas
-//     res.status(500).json({ error: 'Error al guardar cambios' });
-//   }
-// };
 
 const putBoletinesMySql = async (req, res) => {
   try {
     const db = await conectarMySql();
-    // console.log(req.body);
     const {
       id_boletin,
       nro_boletin,
@@ -348,42 +302,30 @@ const putBoletinesMySql = async (req, res) => {
       normasAgregadasEditar,
     } = req.body;
 
-    // Log para verificar los valores de los parámetros
-    // console.log(
-    //   "Valores de los parámetros:",
-    //   id_boletin,
-    //   nro_boletin,
-    //   fecha_publicacion,
-    //   habilita,
-    //   normasAgregadasEditar
-    // );
-
-    // Ejecutar la consulta SQL
     await db.query(
-      "UPDATE boletin_prueba SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
+      "UPDATE boletin SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
       [nro_boletin, fecha_publicacion.slice(0, 10), habilita, id_boletin]
     );
 
     for (const contenido of normasAgregadasEditar) {
       const { norma, numero, origen, año, habilita, id_contenido_boletin } =
         contenido;
-      // console.log(
-      //   norma,
-      //   numero,
-      //   origen,
-      //   año,
-      //   habilita,
-      //   id_contenido_boletin,
-      //   "contenidoBoletin"
-      // );
       if (id_contenido_boletin > 0) {
         await db.query(
-          "UPDATE contenido_boletin_prueba SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
-          [norma, numero, origen, año.slice(0, 10), habilita,id_contenido_boletin, id_boletin]
+          "UPDATE contenido_boletin SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
+          [
+            norma,
+            numero,
+            origen,
+            año.slice(0, 10),
+            habilita,
+            id_contenido_boletin,
+            id_boletin,
+          ]
         );
       } else if (id_contenido_boletin < 0) {
         await db.query(
-          "INSERT INTO contenido_boletin_prueba (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
+          "INSERT INTO contenido_boletin (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
           [id_boletin, norma, numero, origen, año.slice(0, 10)]
         );
       }
@@ -433,6 +375,7 @@ const postBoletin = async (req, res) => {
       }
 
       // VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
+      
       const sftp = await conectarSFTP();
 
       if (!sftp || !sftp.sftp) {
@@ -440,6 +383,7 @@ const postBoletin = async (req, res) => {
           "Error de conexión SFTP: no se pudo establecer la conexión correctamente"
         );
       }
+     
       //CAMBIAR RUTA SERVIDOR PRODUCCION
       //RUTA PC PEDRO
       // const rutaArchivo = `C:\\Users\\Programadores\\Desktop\\${requestData.fechaPublicacion.slice(
@@ -450,6 +394,7 @@ const postBoletin = async (req, res) => {
       //   10
       // )}.pdf`;
       //RUTA SERVIDOR DESARROLLO (172.16.8.209)
+     
       const rutaArchivo = `/home/boletin/${requestData.fechaPublicacion.slice(
         0,
         4
@@ -462,7 +407,7 @@ const postBoletin = async (req, res) => {
       await sftp.end();
       await db.end();
 
-      console.log("El archivo se ha guardado correctamente en", rutaArchivo);
+      // console.log("El archivo se ha guardado correctamente en", rutaArchivo);
       res.status(200).json({ message: "Se agregó un nuevo Boletín con éxito" });
     });
   } catch (error) {
@@ -475,8 +420,6 @@ const postBoletin = async (req, res) => {
 module.exports = {
   postBoletin,
   putBoletinesMySql,
-  // postBoletinGuardar,
-  getOrigen,
   getBoletinesMySql,
   getBuscarNroMySql,
   getBoletinesListado,

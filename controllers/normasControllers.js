@@ -1,5 +1,4 @@
 const CustomError = require("../utils/customError");
-const path = require("path");
 const { conectarMySql } = require("../config/dbMySql");
 
 const getNormas = async (req, res) => {
@@ -29,7 +28,7 @@ const putNormasListado = async (req, res) => {
     const { id_norma, tipo_norma, habilita } = req.body;
 
     await db.query(
-      "UPDATE norma_prueba SET id_norma = ?, tipo_norma = ?, habilita = ? WHERE id_norma = ?",
+      "UPDATE norma SET id_norma = ?, tipo_norma = ?, habilita = ? WHERE id_norma = ?",
       [id_norma, tipo_norma.toUpperCase(), habilita, id_norma] // Aquí, se deben pasar los parámetros como una matriz plana
     );
 
@@ -51,7 +50,7 @@ const getNormasListado = async (req, res) => {
         500
       );
     }
-    const [normas] = await db.query("SELECT * FROM norma_prueba");
+    const [normas] = await db.query("SELECT * FROM norma");
     res.json(normas);
     await db.end();
   } catch (error) {
@@ -70,10 +69,8 @@ const postNorma = async (req, res) => {
         500
       );
     }
-    console.log(req.body);
-
     const [result] = await db.query(
-      "INSERT INTO norma_prueba (tipo_norma, habilita) VALUES ( ?, ?)",
+      "INSERT INTO norma (tipo_norma, habilita) VALUES ( ?, ?)",
       [req.body.norma.toUpperCase(), req.body.habilita]
     );
 

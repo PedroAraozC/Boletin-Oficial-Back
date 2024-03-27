@@ -1,13 +1,13 @@
 const { Router } = require("express");
 const { getNormas, putNormasListado, getNormasListado, postNorma} = require("../controllers/normasControllers");
 
-
-
 const router = Router();
 
-router.get("/listar", getNormas);//MySql
-router.get("/listado", getNormasListado);//MySql
-router.put("/editar", putNormasListado);//MySql
-router.post("/alta", postNorma);//MySql
+router.get("/listar", getNormas);
+router.get("/listado", getNormasListado);
+
+router.put("/editar", putNormasListado);
+
+router.post("/alta", postNorma);
 
 module.exports = router;

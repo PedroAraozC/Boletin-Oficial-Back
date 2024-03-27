@@ -6,7 +6,7 @@ const funcionMulter = () => {
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       const uploadPath = path.join(__dirname, "..", "uploads", "boletin");
-      fs.mkdirSync(uploadPath, { recursive: true }); // Crear carpeta si no existe
+      fs.mkdirSync(uploadPath, { recursive: true }); 
       cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
@@ -24,7 +24,7 @@ const funcionMulter = () => {
 
   const upload = multer({ storage: storage });
 
-  return upload.single("archivoBoletin"); // Cambio aquí para aceptar un solo archivo
+  return upload.single("archivoBoletin");
 };
 
 module.exports = { funcionMulter };

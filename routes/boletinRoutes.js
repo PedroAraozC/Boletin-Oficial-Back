@@ -2,9 +2,7 @@ const { Router } = require("express");
 const { funcionMulter } = require("../middlewares/multerStorage");
 const {
   postBoletin,
-  // postBoletinGuardar,
   putBoletinesMySql,
-  getOrigen,
   getBoletinesMySql,
   getBuscarNroMySql,
   getBuscarFechaMySql,
@@ -13,33 +11,31 @@ const {
   getBuscarPorTipoMySql,
   getBuscarPorFechaMySql,
   getBuscarNroYFechaMySql,
-
   getBoletinesContenidoListado,
   obtenerArchivosDeUnBoletinMySql,
 } = require("../controllers/boletinesControllers");
 
 const router = Router();
 
-router.get("/listar", getBoletinesMySql); //MySql
+router.get("/listar", getBoletinesMySql); 
 
-router.get("/listado", getBoletinesListado); //MySql
-router.get("/listado", getBoletinesListado); //MySql
-router.get("/listadoContenido", getBoletinesContenidoListado); //MySql
-router.get("/buscar/:nroBoletin", getBuscarNroMySql); //MySql
-router.get("/buscarFecha/:fechaBoletin", getBuscarFechaMySql); //MySql
-router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletinMySql); //MySql
+router.get("/listado", getBoletinesListado); 
+router.get("/listado", getBoletinesListado); 
+router.get("/listadoContenido", getBoletinesContenidoListado); 
+router.get("/buscar/:nroBoletin", getBuscarNroMySql); 
+router.get("/buscarFecha/:fechaBoletin", getBuscarFechaMySql); 
+router.get("/listarDescarga/:id?", obtenerArchivosDeUnBoletinMySql); 
 router.get(
   "/buscarNroYFecha/:nroBoletin/:fechaBoletin",
   getBuscarNroYFechaMySql
-); //MySql
-router.get("/buscarPorFecha/:fecha/:idNorma", getBuscarPorFechaMySql); //MySql
-router.get("/buscarPorTipo/:idNorma/:parametro", getBuscarPorTipoMySql); //MySql
-router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql); //MySql
-router.get("/listarOrigen", getOrigen);
+); 
+router.get("/buscarPorFecha/:fecha/:idNorma", getBuscarPorFechaMySql); 
+router.get("/buscarPorTipo/:idNorma/:parametro", getBuscarPorTipoMySql); 
+router.get("/buscarPorTodo/:fecha/:tipo/:nroNorma", getBuscarPorTodoMySql); 
 
-router.post("/alta", postBoletin); //MySql
-router.post("/subir-archivo", funcionMulter); //MySql
-// router.post("/guardar", postBoletinGuardar); //MySql
-router.put("/editar", putBoletinesMySql); //MySql
+router.post("/alta", postBoletin); 
+router.post("/subir-archivo", funcionMulter); 
+
+router.put("/editar", putBoletinesMySql); 
 
 module.exports = router;
