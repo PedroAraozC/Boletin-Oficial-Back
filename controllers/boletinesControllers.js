@@ -393,6 +393,7 @@ const postBoletin = async (req, res) => {
       //   0,
       //   10
       // )}.pdf`;
+     
       //RUTA SERVIDOR DESARROLLO (172.16.8.209)
      
       const rutaArchivo = `/home/boletin/${requestData.fechaPublicacion.slice(
