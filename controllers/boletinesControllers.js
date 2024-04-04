@@ -22,7 +22,7 @@ const getBoletinesMySql = async (req, res) => {
 const getBoletinesListado = async (req, res) => {
   try {
     const db = await conectarMySql();
-    const [boletines] = await db.query("SELECT * FROM boletin_prueba");
+    const [boletines] = await db.query("SELECT * FROM boletin");
     // const [contenidoBoletines] = await db.query(
     //   "SELECT * FROM contenido_boletin_prueba"
     // );
@@ -44,7 +44,7 @@ const getBoletinesContenidoListado = async (req, res) => {
     //   "SELECT * FROM boletin_prueba"
     // );
     const [contenidoBoletines] = await db.query(
-      "SELECT * FROM contenido_boletin_prueba WHERE habilita = 1"
+      "SELECT * FROM contenido_boletin WHERE habilita = 1"
     );
     res.json(contenidoBoletines);
     await db.end();
@@ -360,14 +360,15 @@ const putBoletinesMySql = async (req, res) => {
 
     // Ejecutar la consulta SQL
     await db.query(
-      "UPDATE boletin_prueba SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
+      "UPDATE boletin SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
       [nro_boletin, fecha_publicacion.slice(0, 10), habilita, id_boletin]
-    );
-
-    for (const contenido of normasAgregadasEditar) {
-      const { norma, numero, origen, año, habilita, id_contenido_boletin } =
-        contenido;
-      // console.log(
+    ); 
+if(normasAgregadasEditar){
+  
+  for (const contenido of normasAgregadasEditar) {
+    const { norma, numero, origen, año, habilita, id_contenido_boletin } =
+    contenido;
+    // console.log(
       //   norma,
       //   numero,
       //   origen,
@@ -378,17 +379,19 @@ const putBoletinesMySql = async (req, res) => {
       // );
       if (id_contenido_boletin > 0) {
         await db.query(
-          "UPDATE contenido_boletin_prueba SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
+          "UPDATE contenido_boletin SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
           [norma, numero, origen, año.slice(0, 10), habilita,id_contenido_boletin, id_boletin]
-        );
-      } else if (id_contenido_boletin < 0) {
-        await db.query(
-          "INSERT INTO contenido_boletin_prueba (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
-          [id_boletin, norma, numero, origen, año.slice(0, 10)]
-        );
+          );
+        } else if (id_contenido_boletin < 0) {
+          await db.query(
+            "INSERT INTO contenido_boletin (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
+            [id_boletin, norma, numero, origen, año.slice(0, 10)]
+            );
+          }
+        }
       }
-    }
     res.status(200).json({ message: "Boletín actualizado con éxito" });
+    await db.end();
   } catch (error) {
     console.error("Error al actualizar boletín:", error);
     res.status(500).json({ message: "Error al actualizar boletín" });
