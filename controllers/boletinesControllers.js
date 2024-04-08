@@ -2,12 +2,14 @@ const CustomError = require("../utils/customError");
 const { conectarMySql } = require("../config/dbMySql");
 const { conectarSFTP } = require("../config/dbwinscp");
 const { funcionMulter } = require("../middlewares/multerStorage");
+const { funcionMulterEdicion } = require("../middlewares/multerStorageEdicion");
+const fs = require("fs");
 
 const getBoletinesMySql = async (req, res) => {
   try {
     const db = await conectarMySql();
     const [boletines] = await db.query(
-      "SELECT * FROM boletin WHERE habilita = 1"
+      "SELECT * FROM boletin_prueba WHERE habilita = 1"
     );
     res.json(boletines);
     await db.end();
@@ -21,7 +23,7 @@ const getBoletinesMySql = async (req, res) => {
 const getBoletinesListado = async (req, res) => {
   try {
     const db = await conectarMySql();
-    const [boletines] = await db.query("SELECT * FROM boletin");
+    const [boletines] = await db.query("SELECT * FROM boletin_prueba");
     res.json(boletines);
     await db.end();
   } catch (error) {
@@ -35,7 +37,7 @@ const getBoletinesContenidoListado = async (req, res) => {
   try {
     const db = await conectarMySql();
     const [contenidoBoletines] = await db.query(
-      "SELECT * FROM contenido_boletin WHERE habilita = 1"
+      "SELECT * FROM contenido_boletin_prueba WHERE habilita = 1"
     );
     res.json(contenidoBoletines);
     await db.end();
@@ -51,7 +53,7 @@ const getBuscarNroMySql = async (req, res) => {
   try {
     const db = await conectarMySql();
     const [boletines] = await db.query(
-      `SELECT * FROM boletin WHERE nro_boletin = ${nroBoletin} AND habilita = 1`
+      `SELECT * FROM boletin_prueba WHERE nro_boletin = ${nroBoletin} AND habilita = 1`
     );
     res.json(boletines);
     await db.end();
@@ -244,19 +246,28 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
 
     //VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
 
-    const sftp = await conectarSFTP();
+    // const sftp = await conectarSFTP();
 
-    if (!sftp || !sftp.sftp) {
-      throw new Error(
-        "Error de conexión SFTP: no se pudo establecer la conexión correctamente"
-      );
+    // if (!sftp || !sftp.sftp) {
+    //   throw new Error(
+    //     "Error de conexión SFTP: no se pudo establecer la conexión correctamente"
+    //   );
+    // }
+    // const remoteFilePath = rutaArchivo;
+    // const fileBuffer = await sftp.get(remoteFilePath);
+    // res.send(fileBuffer);
+    // await sftp.end();
+
+    if (fs.existsSync(rutaArchivo)) {
+      console.log(rutaArchivo);
+      return res.sendFile(rutaArchivo);
+    } else {
+      return res.status(404).json({
+        message: "Archivo no encontrado para el boletín especificado",
+      });
     }
-    const remoteFilePath = rutaArchivo;
-    const fileBuffer = await sftp.get(remoteFilePath);
-    res.send(fileBuffer);
-    await sftp.end();
   } catch (error) {
-    await sftp.end();
+    // await sftp.end();
     console.error("Error al obtener archivos de un boletín:", error);
     res.status(500).json({ message: "Error al obtener archivos del boletín" });
   }
@@ -264,15 +275,17 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
 
 const construirRutaArchivo = async (idBoletin) => {
   const boletin = await obtenerDatosDelBoletin(idBoletin);
- 
-  //CAMBIAR RUTA SERVIDOR PRODUCCION
- 
-  const rutaArchivo = `/home/boletin/${boletin.fecha_publicacion
-    .toISOString()
-    .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
-    .toISOString()
-    .slice(0, 10)}.pdf`;
 
+  //CAMBIAR RUTA SERVIDOR PRODUCCION
+
+  const rutaArchivo =
+    // `/home/boletin/
+    `C:/Users/Programadores/Desktop/Boletin/${boletin.fecha_publicacion
+      .toISOString()
+      .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
+      .toISOString()
+      .slice(0, 10)}.pdf`;
+  console.log(rutaArchivo);
   return rutaArchivo;
 };
 
@@ -290,47 +303,90 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
   }
 };
 
-
 const putBoletinesMySql = async (req, res) => {
   try {
     const db = await conectarMySql();
+
+    let requestData = "";
+   
+    let juanito = req.body[1];
+    console.log(juanito, "juanito");
+
+    let pepito = req.body[0];
+    console.log(pepito, "pepito");
+
+    requestData = JSON.parse(req.body[1]);
+
     const {
       id_boletin,
       nro_boletin,
       fecha_publicacion,
       habilita,
       normasAgregadasEditar,
-    } = req.body;
+    } = requestData;
+
+    console.log(requestData, "requestData");
 
     await db.query(
-      "UPDATE boletin SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
-      [nro_boletin, fecha_publicacion.slice(0, 10), habilita, id_boletin]
+      "UPDATE boletin_prueba SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
+      [nro_boletin, fecha_publicacion?.slice(0, 10), habilita, id_boletin]
     );
 
-    for (const contenido of normasAgregadasEditar) {
-      const { norma, numero, origen, año, habilita, id_contenido_boletin } =
-        contenido;
-      if (id_contenido_boletin > 0) {
-        await db.query(
-          "UPDATE contenido_boletin SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
-          [
-            norma,
-            numero,
-            origen,
-            año.slice(0, 10),
-            habilita,
-            id_contenido_boletin,
-            id_boletin,
-          ]
-        );
-      } else if (id_contenido_boletin < 0) {
-        await db.query(
-          "INSERT INTO contenido_boletin (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
-          [id_boletin, norma, numero, origen, año.slice(0, 10)]
-        );
+    if (normasAgregadasEditar) {
+      for (const contenido of normasAgregadasEditar) {
+        const { norma, numero, origen, año, habilita, id_contenido_boletin } =
+          contenido;
+        if (id_contenido_boletin > 0) {
+          await db.query(
+            "UPDATE contenido_boletin_prueba SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
+            [
+              norma,
+              numero,
+              origen,
+              año.slice(0, 10),
+              habilita,
+              id_contenido_boletin,
+              id_boletin,
+            ]
+          );
+        } else if (id_contenido_boletin < 0) {
+          await db.query(
+            "INSERT INTO contenido_boletin_prueba (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
+            [id_boletin, norma, numero, origen, año.slice(0, 10)]
+          );
+        }
       }
     }
-    res.status(200).json({ message: "Boletín actualizado con éxito" });
+    console.log("pingo2")
+
+    funcionMulterEdicion()(req, res, async (err) => {
+      if (err) {
+        console.log("pingo1")
+        console.error("Error al cargar el archivo", err);
+        throw new Error("No se encontraron boletines para el ID especificado");
+      }
+      
+
+      console.log(req.file, "file");
+      if (req.file) {
+        
+        const rutaArchivo = `C:/Users/Programadores/Desktop/Boletin/${requestData.fechaPublicacion.slice(
+          0,
+          4
+        )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
+          0,
+          10
+        )}.pdf`;
+        
+        if (fs.existsSync(rutaArchivo)) {
+          fs.unlinkSync(rutaArchivo);
+        }
+        
+        // Guardar el nuevo PDF
+        fs.renameSync(req.file.path, rutaArchivo);
+      }
+      res.status(200).json({ message: "Boletín actualizado con éxito" });
+    });
   } catch (error) {
     console.error("Error al actualizar boletín:", error);
     res.status(500).json({ message: "Error al actualizar boletín" });
@@ -375,7 +431,7 @@ const postBoletin = async (req, res) => {
       }
 
       // VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
-      
+
       const sftp = await conectarSFTP();
 
       if (!sftp || !sftp.sftp) {
@@ -383,19 +439,19 @@ const postBoletin = async (req, res) => {
           "Error de conexión SFTP: no se pudo establecer la conexión correctamente"
         );
       }
-     
+
       //CAMBIAR RUTA SERVIDOR PRODUCCION
       //RUTA PC PEDRO
-      // const rutaArchivo = `C:\\Users\\Programadores\\Desktop\\${requestData.fechaPublicacion.slice(
+      // const rutaArchivo = `C:/Users/Programadores/Desktop/Boletin/${requestData.fechaPublicacion.slice(
       //   0,
       //   4
       // )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
       //   0,
       //   10
       // )}.pdf`;
-     
+
       //RUTA SERVIDOR DESARROLLO (172.16.8.209)
-     
+
       const rutaArchivo = `/home/boletin/${requestData.fechaPublicacion.slice(
         0,
         4

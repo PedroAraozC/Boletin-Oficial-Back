@@ -20,7 +20,6 @@ const router = Router();
 router.get("/listar", getBoletinesMySql); 
 
 router.get("/listado", getBoletinesListado); 
-router.get("/listado", getBoletinesListado); 
 router.get("/listadoContenido", getBoletinesContenidoListado); 
 router.get("/buscar/:nroBoletin", getBuscarNroMySql); 
 router.get("/buscarFecha/:fechaBoletin", getBuscarFechaMySql); 
