@@ -12,7 +12,7 @@ const funcionMulterEdicion = () => {
       cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
-      const boletin = JSON.parse(req.body.requestData);
+      const boletin = JSON.parse(req.body[1]);
       console.log("Boletín:", boletin);
       if (!boletin.nroBoletin || !boletin.fechaPublicacion) {
           return cb(

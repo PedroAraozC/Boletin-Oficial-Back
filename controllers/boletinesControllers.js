@@ -27,7 +27,6 @@ const getBoletinesListado = async (req, res) => {
     res.json(boletines);
     await db.end();
   } catch (error) {
-    await db.end();
     console.error("Error al buscar boletines:", error);
     res.status(500).json({ message: "Error al buscar boletines en listado" });
   }
@@ -307,36 +306,44 @@ const putBoletinesMySql = async (req, res) => {
   try {
     const db = await conectarMySql();
 
-    let requestData = "";
+    let requestData = {};
    
-    let juanito = req.body[1];
-    console.log(juanito, "juanito");
+    // let juanito = req.body[1];
+    // console.log(juanito, "juanito");
 
-    let pepito = req.body[0];
-    console.log(pepito, "pepito");
+    // let pepito = req.body[0];
+    // console.log(pepito, "pepito");
 
-    requestData = JSON.parse(req.body[1]);
+    if (req.body[1] === undefined) {
+      console.log(req.body[0], "if")
+      requestData = req.body;
+    } else {
+      console.log(req.body[1], "else")
+      requestData = JSON.parse(req.body[1]);
+    }
 
-    const {
-      id_boletin,
-      nro_boletin,
-      fecha_publicacion,
-      habilita,
-      normasAgregadasEditar,
-    } = requestData;
+    // const {
+    //   id_boletin,
+    //   nro_boletin,
+    //   fecha_publicacion,
+    //   habilita,
+    //   normasAgregadasEditar,
+    // } = requestData;
 
     console.log(requestData, "requestData");
+    console.log(requestData.nro_boletin, "requestData");
 
     await db.query(
       "UPDATE boletin_prueba SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
-      [nro_boletin, fecha_publicacion?.slice(0, 10), habilita, id_boletin]
+      [requestData.nro_boletin, requestData.fecha_publicacion?.slice(0, 10), requestData.habilita, requestData.id_boletin]
     );
 
-    if (normasAgregadasEditar) {
-      for (const contenido of normasAgregadasEditar) {
-        const { norma, numero, origen, año, habilita, id_contenido_boletin } =
-          contenido;
+    if (requestData.normasAgregadasEditar) {
+      for (const contenido of requestData.normasAgregadasEditar) {
+        const { norma, numero, origen, año, habilita, id_contenido_boletin } = contenido;
+        console.log(requestData.normasAgregadasEditar, "normas agregadas")
         if (id_contenido_boletin > 0) {
+         
           await db.query(
             "UPDATE contenido_boletin_prueba SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
             [
@@ -346,47 +353,47 @@ const putBoletinesMySql = async (req, res) => {
               año.slice(0, 10),
               habilita,
               id_contenido_boletin,
-              id_boletin,
+              requestData.id_boletin,
             ]
           );
         } else if (id_contenido_boletin < 0) {
           await db.query(
             "INSERT INTO contenido_boletin_prueba (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
-            [id_boletin, norma, numero, origen, año.slice(0, 10)]
+            [requestData.id_boletin, norma, numero, origen, año.slice(0, 10)]
           );
         }
       }
     }
-    console.log("pingo2")
+    // console.log("pingo2")
 
-    funcionMulterEdicion()(req, res, async (err) => {
-      if (err) {
-        console.log("pingo1")
-        console.error("Error al cargar el archivo", err);
-        throw new Error("No se encontraron boletines para el ID especificado");
-      }
+    // funcionMulterEdicion()(req, res, async (err) => {
+    //   if (err) {
+    //     console.log("pingo1")
+    //     console.error("Error al cargar el archivo", err);
+    //     throw new Error("No se encontraron boletines para el ID especificado");
+    //   }
       
 
-      console.log(req.file, "file");
-      if (req.file) {
+    //   console.log(req.file, "file");
+    //   if (req.file) {
         
-        const rutaArchivo = `C:/Users/Programadores/Desktop/Boletin/${requestData.fechaPublicacion.slice(
-          0,
-          4
-        )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
-          0,
-          10
-        )}.pdf`;
+    //     const rutaArchivo = `C:/Users/Programadores/Desktop/Boletin/${requestData.fechaPublicacion.slice(
+    //       0,
+    //       4
+    //     )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
+    //       0,
+    //       10
+    //     )}.pdf`;
         
-        if (fs.existsSync(rutaArchivo)) {
-          fs.unlinkSync(rutaArchivo);
-        }
+    //     if (fs.existsSync(rutaArchivo)) {
+    //       fs.unlinkSync(rutaArchivo);
+    //     }
         
-        // Guardar el nuevo PDF
-        fs.renameSync(req.file.path, rutaArchivo);
-      }
+    //     // Guardar el nuevo PDF
+    //     fs.renameSync(req.file.path, rutaArchivo);
+    //   }
       res.status(200).json({ message: "Boletín actualizado con éxito" });
-    });
+    // });
   } catch (error) {
     console.error("Error al actualizar boletín:", error);
     res.status(500).json({ message: "Error al actualizar boletín" });
