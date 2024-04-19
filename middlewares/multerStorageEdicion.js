@@ -3,25 +3,25 @@ const path = require("path");
 const fs = require("fs");
 
 const funcionMulterEdicion = () => {
-  console.log("pingo3");
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadPath = path.join(__dirname, "..", "uploads", "boletin");
+      const uploadPath = path.join(__dirname, "..", "uploads", "boletin");
       fs.mkdirSync(uploadPath, { recursive: true });
-      console.log("Destination:", uploadPath);
+      // console.log("Destination:", uploadPath);
       cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
-      const boletin = JSON.parse(req.body[1]);
-      console.log("Boletín:", boletin);
-      if (!boletin.nroBoletin || !boletin.fechaPublicacion) {
-          return cb(
-              new Error("Falta información para construir el nombre del archivo")
-            );
-        }
-        const nombreArchivo = `bol_${boletin.nroBoletin}_${boletin.fechaPublicacion}.pdf`;
-        console.log("Nombre de archivo:", nombreArchivo);
-        cb(null, nombreArchivo);
+      const boletin = JSON.parse(req.body.requestData);
+      // console.log("Boletín:", boletin);
+      if (!boletin.nro_boletin || !boletin.fecha_publicacion) {
+        // console.log(boletin.nro_boletin, boletin.fecha_publicacion, "boletin");
+        return cb(
+          new Error("Falta información para construir el nombre del archivo")
+        );
+      }
+      const nombreArchivo = `bol_${boletin.nro_boletin}_${boletin.fecha_publicacion}.pdf`;
+      // console.log("Nombre de archivo:", nombreArchivo);
+      cb(null, nombreArchivo);
     },
   });
 
