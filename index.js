@@ -11,11 +11,10 @@ const boletinRoutes = require("./routes/boletinRoutes");
 const normaRoutes = require("./routes/normaRoutes");
 const origenRoutes = require("./routes/origenRoutes.js");
 const path = require("path");
-
+const userRoutes = require("./routes/userRoutes.js");
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT;
-
 
 app.use(cors());
 app.use(morgan("dev"));
@@ -32,6 +31,7 @@ connectDB();
 app.use("/boletin", boletinRoutes);
 app.use("/norma", normaRoutes);
 app.use("/origen", origenRoutes);
+app.use("/usuarios", userRoutes);
 // const staticPath = "/var/www/html";
 // app.use(express.static(staticPath));
 // app.get("*", (req, res) => {
@@ -46,4 +46,3 @@ app.use("/origen", origenRoutes);
 app.listen(PORT, () => {
   console.log(`server listening on port ${PORT}`);
 });
-
