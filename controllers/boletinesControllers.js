@@ -304,93 +304,158 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
 const putBoletinesMySql = async (req, res) => {
   try {
     const db = await conectarMySql();
-    funcionMulterEdicion()(req, res, async (err) => {
-      if (err) {
-        console.error("Error al cargar el archivo", err);
-        throw new Error("No se encontraron boletines para el ID especificado");
-      }
+    const requestData = obtenerDatosRequest(req);
 
-      let requestData = {};
+    // Actualizar información en la base de datos
+    await actualizarInformacion(db, requestData);
 
-      if (req.body[1] === undefined) {
-        // console.log(req.body);
-        requestData = req.body;
-      } else {
-        // console.log("A");
-        requestData = JSON.parse(req.body[1]);
-      }
+    // Subir archivo si está presente en la solicitud
+    if (req.file) {
+      await subirArchivoSFTP(requestData, req.file);
+    }
 
-      await db.query(
-        "UPDATE boletin SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
-        [
-          requestData.nro_boletin,
-          requestData.fecha_publicacion?.slice(0, 10),
-          requestData.habilita,
-          requestData.id_boletin,
-        ]
-      );
-
-      if (requestData.normasAgregadasEditar) {
-        for (const contenido of requestData.normasAgregadasEditar) {
-          const { norma, numero, origen, año, habilita, id_contenido_boletin } =
-            contenido;
-
-          if (id_contenido_boletin > 0) {
-            await db.query(
-              "UPDATE contenido_boletin SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
-              [
-                norma,
-                numero,
-                origen,
-                año.slice(0, 10),
-                habilita,
-                id_contenido_boletin,
-                requestData.id_boletin,
-              ]
-            );
-          } else if (id_contenido_boletin < 0) {
-            await db.query(
-              "INSERT INTO contenido_boletin (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
-              [requestData.id_boletin, norma, numero, origen, año.slice(0, 10)]
-            );
-          }
-        }
-      }
-
-      const sftp = await conectarSFTP();
-
-      if (!sftp || !sftp.sftp) {
-        throw new Error(
-          "Error de conexión SFTP: no se pudo establecer la conexión correctamente"
-        );
-      }
-
-      if (req.file) {
-        let ruta = JSON.parse(requestData.requestData);
-
-        const rutaArchivo = `/home/boletin/${ruta.fecha_publicacion?.slice(
-          0,
-          4
-        )}/bol_${ruta.nro_boletin}_${ruta.fecha_publicacion?.slice(0, 10)}.pdf`;
-
-        //   if (fs.existsSync(rutaArchivo)) {
-        //     fs.unlinkSync(rutaArchivo);
-        //   }
-
-        //   fs.renameSync(req.file.path, rutaArchivo);
-
-        await sftp.put(req.file.path, rutaArchivo);
-        await sftp.end();
-        await db.end();
-      }
-
-      res.status(200).json({ message: "Boletín actualizado con éxito" });
-    });
+    res.status(200).json({ message: "Boletín actualizado con éxito" });
   } catch (error) {
     console.error("Error al actualizar boletín:", error);
     res.status(500).json({ message: "Error al actualizar boletín" });
   }
 };
+
+const obtenerDatosRequest = (req) => {
+  let requestData = {};
+
+  if (req.body[1] === undefined) {
+    requestData = req.body;
+  } else {
+    requestData = JSON.parse(req.body[1]);
+  }
+
+  return requestData;
+};
+
+const actualizarInformacion = async (db, requestData) => {
+  const { nro_boletin, fecha_publicacion, habilita, id_boletin, normasAgregadasEditar } = requestData;
+
+  await db.query(
+    "UPDATE boletin SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
+    [nro_boletin, fecha_publicacion?.slice(0, 10), habilita, id_boletin]
+  );
+
+  if (normasAgregadasEditar) {
+    for (const contenido of normasAgregadasEditar) {
+      // Actualizar o insertar contenido_boletin según sea necesario
+    }
+  }
+};
+
+const subirArchivoSFTP = async (requestData, file) => {
+  const sftp = await conectarSFTP();
+
+  if (!sftp || !sftp.sftp) {
+    throw new Error("Error de conexión SFTP: no se pudo establecer la conexión correctamente");
+  }
+
+  const rutaArchivo = obtenerRutaArchivo(requestData);
+
+  await sftp.put(file.path, rutaArchivo);
+  await sftp.end();
+};
+
+const obtenerRutaArchivo = (requestData) => {
+  const { nro_boletin, fecha_publicacion } = requestData;
+  return `/home/boletin/${fecha_publicacion?.slice(0, 4)}/bol_${nro_boletin}_${fecha_publicacion?.slice(0, 10)}.pdf`;
+};
+
+// const putBoletinesMySql = async (req, res) => {
+//   try {
+//     const db = await conectarMySql();
+//     funcionMulterEdicion()(req, res, async (err) => {
+//       if (err) {
+//         console.error("Error al cargar el archivo", err);
+//         throw new Error("No se encontraron boletines para el ID especificado");
+//       }
+
+//       let requestData = {};
+
+//       if (req.body[1] === undefined) {
+//         console.log(req.body);
+//         requestData = req.body;
+//       } else {
+//         // console.log("A");
+//         requestData = JSON.parse(req.body[1]);
+//       }
+
+//       await db.query(
+//         "UPDATE boletin SET nro_boletin = ?, fecha_publicacion = ?, habilita = ? WHERE id_boletin = ?",
+//         [
+//           requestData.nro_boletin,
+//           requestData.fecha_publicacion?.slice(0, 10),
+//           requestData.habilita,
+//           requestData.id_boletin,
+//         ]
+//       );
+
+//       if (requestData.normasAgregadasEditar) {
+//         for (const contenido of requestData.normasAgregadasEditar) {
+//           const { norma, numero, origen, año, habilita, id_contenido_boletin } =
+//             contenido;
+
+//           if (id_contenido_boletin > 0) {
+//             await db.query(
+//               "UPDATE contenido_boletin SET id_norma = ?, nro_norma = ?, id_origen = ?, fecha_norma = ?, habilita = ? WHERE id_contenido_boletin = ? AND id_boletin = ?",
+//               [
+//                 norma,
+//                 numero,
+//                 origen,
+//                 año.slice(0, 10),
+//                 habilita,
+//                 id_contenido_boletin,
+//                 requestData.id_boletin,
+//               ]
+//             );
+//           } else if (id_contenido_boletin < 0) {
+//             await db.query(
+//               "INSERT INTO contenido_boletin (id_boletin, id_norma, nro_norma, id_origen, fecha_norma) VALUES (?,?,?,?,?)",
+//               [requestData.id_boletin, norma, numero, origen, año.slice(0, 10)]
+//             );
+//           }
+//         }
+//       }
+
+//       const sftp = await conectarSFTP();
+
+//       if (!sftp || !sftp.sftp) {
+//         throw new Error(
+//           "Error de conexión SFTP: no se pudo establecer la conexión correctamente"
+//         );
+//       }
+
+//       if (req.file) {
+//         let ruta = JSON.parse(requestData.requestData);
+
+//         const rutaArchivo = `/home/boletin/${ruta.fecha_publicacion?.slice(
+//           0,
+//           4
+//         )}/bol_${ruta.nro_boletin}_${ruta.fecha_publicacion?.slice(0, 10)}.pdf`;
+
+//         //   if (fs.existsSync(rutaArchivo)) {
+//         //     fs.unlinkSync(rutaArchivo);
+//         //   }
+
+//         //   fs.renameSync(req.file.path, rutaArchivo);
+
+//         await sftp.put(req.file.path, rutaArchivo);
+//         await sftp.end();
+//         await db.end();
+//       }
+
+//       res.status(200).json({ message: "Boletín actualizado con éxito" });
+//     });
+//   } catch (error) {
+//     console.error("Error al actualizar boletín:", error);
+//     res.status(500).json({ message: "Error al actualizar boletín" });
+//   }
+// };
 
 const postBoletin = async (req, res) => {
   try {
