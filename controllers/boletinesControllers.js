@@ -241,11 +241,14 @@ const getBuscarPorTodoMySql = async (req, res) => {
 const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
   try {
     const idBoletin = req.params.id;
-    const rutaArchivo = await construirRutaArchivo(idBoletin);
-
     //VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
-
+    if (!idBoletin) {
+      return res
+        .status(400)
+        .json({ message: "El ID del boletín es requerido" });
+    }
     const sftp = await conectarSFTP();
+    const rutaArchivo = await construirRutaArchivo(idBoletin);
 
     if (!sftp || !sftp.sftp) {
       throw new Error(
@@ -276,13 +279,12 @@ const construirRutaArchivo = async (idBoletin) => {
   const boletin = await obtenerDatosDelBoletin(idBoletin);
 
   //CAMBIAR RUTA SERVIDOR PRODUCCION
-
-  const rutaArchivo = `/home/boletin/${boletin.fecha_publicacion
+  const rutaArchivo = `/var/www/vhosts/boletinoficial.smt.gob.ar/boletin/${boletin.fecha_publicacion
     .toISOString()
     .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
     .toISOString()
     .slice(0, 10)}.pdf`;
-  // console.log(rutaArchivo);
+  console.log(rutaArchivo);
   return rutaArchivo;
 };
 
@@ -313,9 +315,8 @@ const putBoletinesMySql = async (req, res) => {
       let requestData = {};
 
       if (req.body[1] === undefined) {
-        requestData = JSON.parse(req.body.requestData);
+        requestData = JSON.parse(req.body?.requestData);
       } else {
-      
         requestData = JSON.parse(req.body[1]);
       }
 
@@ -367,7 +368,7 @@ const putBoletinesMySql = async (req, res) => {
       if (req.file) {
         let ruta = JSON.parse(requestData.requestData);
 
-        const rutaArchivo = `/home/boletin/${ruta.fecha_publicacion?.slice(
+        const rutaArchivo = `/var/www/vhosts/boletinoficial.smt.gob.ar/boletin/${ruta.fecha_publicacion?.slice(
           0,
           4
         )}/bol_${ruta.nro_boletin}_${ruta.fecha_publicacion?.slice(0, 10)}.pdf`;
@@ -449,7 +450,7 @@ const postBoletin = async (req, res) => {
       //RUTA SERVIDOR DESARROLLO (172.16.8.209)
       //RUTA SERVIDOR PRODUCCION (172.16.10.125)
 
-      const rutaArchivo = `/home/boletin/${requestData.fechaPublicacion.slice(
+      const rutaArchivo = `/var/www/vhosts/boletinoficial.smt.gob.ar/boletin/${requestData.fechaPublicacion.slice(
         0,
         4
       )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(

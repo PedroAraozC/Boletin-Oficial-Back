@@ -15,6 +15,8 @@ const userRoutes = require("./routes/userRoutes.js");
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT;
+const fs = require("fs")
+const https = require("https")
 
 app.use(cors());
 app.use(morgan("dev"));
@@ -42,6 +44,24 @@ app.use("/usuarios", userRoutes);
 // app.get("*", (req, res) => {
 //   res.sendFile(path.join("/var/www/html/assets", "index.html"));
 // });
+
+
+
+// const options = {
+//   key: fs.readFileSync('/opt/psa/var/certificates/scfg0cbqs'),
+//   cert: fs.readFileSync('/opt/psa/var/certificates/scfg0cbqs'),
+//   //ca: fs.readFileSync('/opt/psa/var/certificates/scfqdiDyQ') // si tienes un archivo CA bundle
+// };
+
+// https.createServer(options, app).listen(PORT, () => {
+//   console.log(`server listening on port ${PORT}`);
+// });
+
+
+// app.listen(3700, () => {
+//   console.log(`server listening on port 3700`);
+// });
+
 
 app.listen(PORT, () => {
   console.log(`server listening on port ${PORT}`);
