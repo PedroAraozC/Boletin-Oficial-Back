@@ -13,6 +13,7 @@ const {
   getBuscarNroYFechaMySql,
   getBoletinesContenidoListado,
   obtenerArchivosDeUnBoletinMySql,
+  disableBoletinesMySql,
 } = require("../controllers/boletinesControllers");
 
 const router = Router();
@@ -36,5 +37,7 @@ router.post("/alta", postBoletin);
 router.post("/subir-archivo", funcionMulter);
 
 router.put("/editar", putBoletinesMySql);
+
+router.patch("/deshabilitar", disableBoletinesMySql);
 
 module.exports = router;

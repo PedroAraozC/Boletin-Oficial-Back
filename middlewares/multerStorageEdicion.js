@@ -8,7 +8,7 @@ const funcionMulterEdicion = () => {
       if (file) {
         const uploadPath = path.join(__dirname, "..", "uploads", "boletin");
         fs.mkdirSync(uploadPath, { recursive: true });
-        // console.log("Destination:", uploadPath);
+         console.log("Destination:", uploadPath);
         cb(null, uploadPath);
       } else {
         cb(null, null);
@@ -18,16 +18,16 @@ const funcionMulterEdicion = () => {
       if (!file) {
         cb(null, null);
       } else {
-        const boletin = JSON.parse(req.body.requestData);
-        // console.log("Boletín:", boletin);
+        const boletin = JSON.parse(req.body?.requestData);
+         console.log("Boletín:", boletin);
         if (!boletin.nro_boletin || !boletin.fecha_publicacion) {
-          // console.log(boletin.nro_boletin, boletin.fecha_publicacion, "boletin");
+           console.log(boletin.nro_boletin, boletin.fecha_publicacion, "boletin");
           return cb(
             new Error("Falta información para construir el nombre del archivo")
           );
         }
         const nombreArchivo = `bol_${boletin.nro_boletin}_${boletin.fecha_publicacion}.pdf`;
-        // console.log("Nombre de archivo:", nombreArchivo);
+         console.log("Nombre de archivo:", nombreArchivo);
         cb(null, nombreArchivo);
       }
     },
@@ -58,6 +58,7 @@ const funcionMulterEdicion = () => {
             });
         }
       }
+    
       // Si no hay errores, continuar con el siguiente middleware o controlador
       next();
     });

@@ -41,6 +41,27 @@ const putNormasListado = async (req, res) => {
   }
 };
 
+const disableNormasListado = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+    const { habilita, normaId } = req.body;
+// console.log(req.body)
+    if (typeof habilita === "undefined" || !normaId) {
+      return res.status(400).json({ message: "Datos inválidos" });
+    }
+
+    await db.query(
+      "UPDATE norma SET habilita = ? WHERE id_norma = ?",
+      [habilita, normaId] // Aquí, se deben pasar los parámetros como una matriz plana
+    );
+
+    res.status(200).json({ message: "Norma actualizada con éxito" });
+    await db.end();
+  } catch (error) {
+    console.error("Error al actualizar norma:", error);
+    res.status(500).json({ message: "Error al actualizar Norma" });
+  }
+};
 const getNormasListado = async (req, res) => {
   try {
     const db = await conectarMySql();
@@ -83,4 +104,10 @@ const postNorma = async (req, res) => {
   }
 };
 
-module.exports = { getNormas, putNormasListado, getNormasListado, postNorma };
+module.exports = {
+  getNormas,
+  putNormasListado,
+  getNormasListado,
+  postNorma,
+  disableNormasListado,
+};

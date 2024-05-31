@@ -314,8 +314,14 @@ const putBoletinesMySql = async (req, res) => {
 
       let requestData = {};
 
+      console.log(req.body);
+
       if (req.body[1] === undefined) {
-        requestData = JSON.parse(req.body?.requestData);
+        if (req.body.requestData != undefined) {
+          requestData = JSON.parse(req.body?.requestData);
+        } else {
+          requestData = req.body;
+        }
       } else {
         requestData = JSON.parse(req.body[1]);
       }
@@ -330,7 +336,7 @@ const putBoletinesMySql = async (req, res) => {
         ]
       );
 
-      if (requestData.normasAgregadasEditar) {
+      if (requestData?.normasAgregadasEditar) {
         for (const contenido of requestData.normasAgregadasEditar) {
           const { norma, numero, origen, año, habilita, id_contenido_boletin } =
             contenido;
@@ -366,7 +372,7 @@ const putBoletinesMySql = async (req, res) => {
       }
 
       if (req.file) {
-        let ruta = JSON.parse(requestData.requestData);
+        let ruta = JSON.parse(requestData?.requestData);
 
         const rutaArchivo = `/var/www/vhosts/boletinoficial.smt.gob.ar/boletin/${ruta.fecha_publicacion?.slice(
           0,
@@ -386,6 +392,30 @@ const putBoletinesMySql = async (req, res) => {
 
       res.status(200).json({ message: "Boletín actualizado con éxito" });
     });
+  } catch (error) {
+    console.error("Error al actualizar boletín:", error);
+    res.status(500).json({ message: "Error al actualizar boletín" });
+  }
+};
+
+const disableBoletinesMySql = async (req, res) => {
+  try {
+    const db = await conectarMySql();
+
+    const { habilita, id_boletin } = req.body;
+
+    console.log(req.body);
+
+    if (typeof habilita === "undefined" || !id_boletin) {
+      return res.status(400).json({ message: "Datos inválidos" });
+    }
+
+    await db.query("UPDATE boletin SET habilita = ? WHERE id_boletin = ?", [
+      habilita,
+      id_boletin,
+    ]);
+    await db.end();
+    res.status(200).json({ message: "Boletín deshabilitado" });
   } catch (error) {
     console.error("Error al actualizar boletín:", error);
     res.status(500).json({ message: "Error al actualizar boletín" });
@@ -474,6 +504,7 @@ const postBoletin = async (req, res) => {
 module.exports = {
   postBoletin,
   putBoletinesMySql,
+  disableBoletinesMySql,
   getBoletinesMySql,
   getBuscarNroMySql,
   getBoletinesListado,
