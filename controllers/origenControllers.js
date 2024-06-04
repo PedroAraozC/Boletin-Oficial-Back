@@ -14,7 +14,7 @@ const getOrigen = async (req, res) => {
     res.json(origen);
     await db.end();
   } catch (error) {
-    await db.end();
+    // await db.end();
     console.error("Error al buscar origen:", error);
     res.status(500).json({ message: "Error al buscar origen" });
   }
@@ -33,7 +33,7 @@ const getOrigenTodo = async (req, res) => {
     res.json(origen);
     await db.end();
   } catch (error) {
-    await db.end();
+    // await db.end();
     console.error("Error al buscar origen:", error);
     res.status(500).json({ message: "Error al buscar origen" });
   }
@@ -50,7 +50,7 @@ const putOrigenListado = async (req, res) => {
     res.status(200).json({ message: "Origen actualizado con éxito" });
     await db.end();
   } catch (error) {
-    await db.end();
+    // await db.end();
     console.error("Error al actualizar Origen:", error);
     res.status(500).json({ message: "Error al actualizar Origen" });
   }

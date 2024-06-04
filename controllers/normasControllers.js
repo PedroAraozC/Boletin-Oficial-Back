@@ -15,7 +15,7 @@ const getNormas = async (req, res) => {
     res.json(normas);
     await db.end();
   } catch (error) {
-    await db.end();
+    // await db.end();
     console.error("Error al buscar norma:", error);
     res.status(500).json({ message: "Error al buscar norma" });
   }
@@ -28,14 +28,14 @@ const putNormasListado = async (req, res) => {
     const { id_norma, tipo_norma, habilita } = req.body;
 
     await db.query(
-      "UPDATE norma SET id_norma = ?, tipo_norma = ?, habilita = ? WHERE id_norma = ?",
+      "UPDATE norma_prueba SET id_norma = ?, tipo_norma = ?, habilita = ? WHERE id_norma = ?",
       [id_norma, tipo_norma.toUpperCase(), habilita, id_norma] // Aquí, se deben pasar los parámetros como una matriz plana
     );
 
     res.status(200).json({ message: "Norma actualizada con éxito" });
     await db.end();
   } catch (error) {
-    await db.end();
+    // await db.end();
     console.error("Error al actualizar norma:", error);
     res.status(500).json({ message: "Error al actualizar Norma" });
   }
@@ -51,7 +51,7 @@ const disableNormasListado = async (req, res) => {
     }
 
     await db.query(
-      "UPDATE norma SET habilita = ? WHERE id_norma = ?",
+      "UPDATE norma_prueba SET habilita = ? WHERE id_norma = ?",
       [habilita, normaId] // Aquí, se deben pasar los parámetros como una matriz plana
     );
 
@@ -71,11 +71,11 @@ const getNormasListado = async (req, res) => {
         500
       );
     }
-    const [normas] = await db.query("SELECT * FROM norma");
+    const [normas] = await db.query("SELECT * FROM norma_prueba");
     res.json(normas);
     await db.end();
   } catch (error) {
-    await db.end();
+    // await db.end();
     console.error("Error al buscar norma:", error);
     res.status(500).json({ message: "Error al buscar norma" });
   }
@@ -98,7 +98,7 @@ const postNorma = async (req, res) => {
     res.json(result);
     await db.end();
   } catch (error) {
-    await db.end();
+    // await db.end();
     console.error("Error al agregar norma:", error);
     res.status(500).json({ message: "Error al agregar norma" });
   }
