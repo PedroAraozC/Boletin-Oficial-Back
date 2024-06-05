@@ -262,7 +262,7 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
     // await sftp.end();
 
     if (fs.existsSync(rutaArchivo)) {
-      console.log(rutaArchivo);
+      // console.log(rutaArchivo);
       return res.sendFile(rutaArchivo);
     } else {
       return res.status(404).json({
@@ -285,7 +285,7 @@ const construirRutaArchivo = async (idBoletin) => {
     .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
     .toISOString()
     .slice(0, 10)}.pdf`;
-  console.log(rutaArchivo);
+  // console.log(rutaArchivo);
   return rutaArchivo;
 };
 
@@ -293,6 +293,34 @@ const obtenerDatosDelBoletin = async (idBoletin) => {
   const db = await conectarMySql();
   const [boletines] = await db.query(
     `SELECT * FROM boletin WHERE id_boletin = ${idBoletin} AND habilita = 1`
+  );
+  if (boletines.length > 0) {
+    await db.end();
+    return boletines[0];
+  } else {
+    // await db.end();
+    console.error("Error al obtener archivos de un boletín:", error);
+    throw new Error("No se encontraron boletines para el ID especificado");
+  }
+};
+
+const construirRutaArchivoPdf = async (idBoletin) => {
+  const boletin = await obtenerDatosDelBoletinPdf(idBoletin);
+
+  //CAMBIAR RUTA SERVIDOR PRODUCCION
+  const rutaArchivo = `/var/www/vhosts/boletinoficial.smt.gob.ar/boletin/${boletin.fecha_publicacion
+    .toISOString()
+    .slice(0, 4)}/bol_${boletin.nro_boletin}_${boletin.fecha_publicacion
+    .toISOString()
+    .slice(0, 10)}.pdf`;
+  // console.log(rutaArchivo);
+  return rutaArchivo;
+};
+
+const obtenerDatosDelBoletinPdf = async (idBoletin) => {
+  const db = await conectarMySql();
+  const [boletines] = await db.query(
+    `SELECT * FROM boletin WHERE id_boletin = ${idBoletin}`
   );
   if (boletines.length > 0) {
     await db.end();
@@ -314,9 +342,8 @@ const verPdf = async (req, res) => {
         .json({ message: "El ID del boletín es requerido" });
     }
     // const sftp = await conectarSFTP();
-    const rutaArchivo =
-      "C:/Users/Programadores/Desktop/bol_4328_2023-11-03.pdf";
-    // const rutaArchivo = await construirRutaArchivo(idBoletin);
+    // const rutaArchivo = "C:/Users/Programadores/Desktop/bol_4328_2023-11-03.pdf";
+    const rutaArchivo = await construirRutaArchivoPdf(idBoletin);
 
     // if (!sftp || !sftp.sftp) {
     //   throw new Error(
@@ -329,7 +356,7 @@ const verPdf = async (req, res) => {
     // await sftp.end();
 
     if (fs.existsSync(rutaArchivo)) {
-      console.log(rutaArchivo);
+      // console.log(rutaArchivo);
       return res.sendFile(rutaArchivo);
     } else {
       return res.status(404).json({
@@ -354,7 +381,7 @@ const putBoletinesMySql = async (req, res) => {
 
       let requestData = {};
 
-      console.log(req.body);
+      // console.log(req.body);
 
       if (req.body[1] === undefined) {
         if (req.body.requestData != undefined) {
@@ -414,29 +441,54 @@ const putBoletinesMySql = async (req, res) => {
       if (req.file) {
         // console.log(requestData,"reqData")
         // console.log(requestData.requestData,"reqData.reqData")
-        let ruta = requestData;
+        // let ruta = requestData;
 
-        const rutaArchivo = `/var/www/vhosts/boletinoficial.smt.gob.ar/boletin/${ruta.fecha_publicacion?.slice(
+        // const rutaArchivo = `/var/www/vhosts/boletinoficial.smt.gob.ar/boletin/${ruta.fecha_publicacion?.slice(
+        //   0,
+        //   4
+        // )}/bol_${ruta.nro_boletin}_${ruta.fecha_publicacion?.slice(0, 10)}.pdf`;
+
+        // //   if (fs.existsSync(rutaArchivo)) {
+        // //     fs.unlinkSync(rutaArchivo);
+        // //   }
+
+        // //   fs.renameSync(req.file.path, rutaArchivo);
+
+        // // await sftp.put(req.file.path, rutaArchivo);
+        // // await sftp.end();
+
+        // fs.writeFile(rutaArchivo, req.file.path, (error) => {
+        //   if (error) {
+        //     console.error("Error al esquibir el archivo:", error);
+        //     return;
+        //   }
+        //   console.log("Archivo escrito exitosamente.");
+        // });
+        // console.log(requestData.fecha_publicacion,"requestData.fechaPublicacion")
+        const rutaDirectorio = `/var/www/vhosts/boletinoficial.smt.gob.ar/boletin/${requestData.fecha_publicacion?.slice(
           0,
           4
-        )}/bol_${ruta.nro_boletin}_${ruta.fecha_publicacion?.slice(0, 10)}.pdf`;
+        )}`;
+        if (!fs.existsSync(rutaDirectorio)) {
+          fs.mkdirSync(rutaDirectorio, { recursive: true });
+        }
 
-        //   if (fs.existsSync(rutaArchivo)) {
-        //     fs.unlinkSync(rutaArchivo);
-        //   }
+        const rutaArchivo = `${rutaDirectorio}/bol_${
+          requestData.nro_boletin
+        }_${requestData.fecha_publicacion?.slice(0, 10)}.pdf`;
 
-        //   fs.renameSync(req.file.path, rutaArchivo);
+        // console.log("Moviendo archivo desde", req.file.path, "a", rutaArchivo);
 
-        // await sftp.put(req.file.path, rutaArchivo);
-        // await sftp.end();
-
-        fs.writeFile(rutaArchivo, req.file.path, (error) => {
-          if (error) {
-            console.error("Error al esquibir el archivo:", error);
-            return;
-          }
-          console.log("Archivo escrito exitosamente.");
-        });
+        try {
+          fs.renameSync(req.file.path, rutaArchivo);
+          console.log("Archivo movido exitosamente.");
+        } catch (renameError) {
+          console.error("Error al mover el archivo:", renameError);
+          return res.status(500).json({
+            message: "Error al mover el archivo",
+            error: renameError.message,
+          });
+        }
 
         await db.end();
       }
@@ -455,7 +507,7 @@ const disableBoletinesMySql = async (req, res) => {
 
     const { habilita, id_boletin } = req.body;
 
-    console.log(req.body);
+    // console.log(req.body);
 
     if (typeof habilita === "undefined" || !id_boletin) {
       return res.status(400).json({ message: "Datos inválidos" });
@@ -477,6 +529,12 @@ const postBoletin = async (req, res) => {
   try {
     const db = await conectarMySql();
     funcionMulter()(req, res, async (err) => {
+      if (err) {
+        console.error("Error en multer:", err);
+        return res
+          .status(400)
+          .json({ message: "Error al cargar el archivo", error: err.message });
+      }
       if (!req.file) {
         throw new CustomError("Error al cargar el archivo", 400);
       }
@@ -531,21 +589,38 @@ const postBoletin = async (req, res) => {
       //RUTA SERVIDOR DESARROLLO (172.16.8.209)
       //RUTA SERVIDOR PRODUCCION (172.16.10.125)
 
-      const rutaArchivo = `/var/www/vhosts/boletinoficial.smt.gob.ar/boletin/${requestData.fechaPublicacion.slice(
+      const rutaDirectorio = `/var/www/vhosts/boletinoficial.smt.gob.ar/boletin/${requestData.fechaPublicacion.slice(
         0,
         4
-      )}/bol_${requestData.nroBoletin}_${requestData.fechaPublicacion.slice(
-        0,
-        10
-      )}.pdf`;
+      )}`;
+      if (!fs.existsSync(rutaDirectorio)) {
+        fs.mkdirSync(rutaDirectorio, { recursive: true });
+      }
 
-      fs.writeFile(rutaArchivo, req.file.path, (error) => {
-        if (error) {
-          console.error("Error al esquibir el archivo:", error);
-          return;
-        }
-        console.log("Archivo escrito exitosamente.");
-      });
+      const rutaArchivo = `${rutaDirectorio}/bol_${
+        requestData.nroBoletin
+      }_${requestData.fechaPublicacion.slice(0, 10)}.pdf`;
+
+      // console.log("Moviendo archivo desde", req.file.path, "a", rutaArchivo);
+
+      try {
+        fs.renameSync(req.file.path, rutaArchivo);
+        console.log("Archivo movido exitosamente.");
+      } catch (renameError) {
+        console.error("Error al mover el archivo:", renameError);
+        return res.status(500).json({
+          message: "Error al mover el archivo",
+          error: renameError.message,
+        });
+      }
+
+      // fs.writeFile(rutaArchivo, req.file.path, (error) => {
+      //   if (error) {
+      //     console.error("Error al esquibir el archivo:", error);
+      //     return;
+      //   }
+      //   console.log("Archivo escrito exitosamente.");
+      // });
       // await sftp.put(req.file.path, rutaArchivo);
       // await sftp.end();
       await db.end();
@@ -561,17 +636,18 @@ const postBoletin = async (req, res) => {
 
 const trackingUser = async (req, res) => {
   try {
-    const id_boletin = req.id;
-    const id_user = req.user;
-
-    console.log(req, "id user");
+    const id_boletin = req?.id;
+    const id_user = req?.user;
     const db = await conectarMySql();
     let fecha = new Date();
-    console.log(fecha)
-    const [result] = await db.query(
-      "INSERT INTO descarga_boletin (id_boletin, id_persona, fecha_descarga) VALUES (?,?,?)",
-      [id_boletin, id_user, fecha]
-    );
+    if (!id_user || !id_boletin) {
+      console.error("Error al guardar datos user:", error);
+    } else {
+      const [result] = await db.query(
+        "INSERT INTO descarga_boletin (id_boletin, id_persona, fecha_descarga) VALUES (?,?,?)",
+        [id_boletin, id_user, fecha]
+      );
+    }
   } catch (error) {
     console.error("Error al guardar datos:", error);
     res.status(500).json({ message: "Error al guardar datos" });
