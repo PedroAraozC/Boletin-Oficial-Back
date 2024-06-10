@@ -623,6 +623,7 @@ const postBoletin = async (req, res) => {
       // });
       // await sftp.put(req.file.path, rutaArchivo);
       // await sftp.end();
+      
       await db.end();
 
       res.status(200).json({ message: "Se agregó un nuevo Boletín con éxito" });

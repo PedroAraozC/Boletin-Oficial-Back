@@ -9,7 +9,7 @@ const conectarMySql = async () => {
       password: process.env.PASSWORD_BOL,
       database: process.env.DB_BOL,
     });
-    console.log("Conexión a MySQL establecida exitosamente");
+    // console.log("Conexión a MySQL establecida exitosamente");
     return connection;
   } catch (error) {
     console.error("Error de conexiÃ³n MySql:", error);

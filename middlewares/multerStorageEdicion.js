@@ -58,7 +58,6 @@ const funcionMulterEdicion = () => {
             });
         }
       }
-    
       // Si no hay errores, continuar con el siguiente middleware o controlador
       next();
     });
