@@ -243,6 +243,8 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
     const idBoletin = req.params.id;
     const params = req.params;
     trackingUser(params);
+    // console.log(params,"params")
+    // console.log(req,"req")
     //VERIFICAR CREDENCIALES PARA ACCEDER A RUTA SERVIDOR PRODUCCION
     if (!idBoletin) {
       return res
@@ -251,6 +253,8 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
     }
     // const sftp = await conectarSFTP();
     const rutaArchivo = await construirRutaArchivo(idBoletin);
+    console.log(rutaArchivo);
+
     // if (!sftp || !sftp.sftp) {
     //   throw new Error(
     //     "Error de conexión SFTP: no se pudo establecer la conexión correctamente"
@@ -262,7 +266,6 @@ const obtenerArchivosDeUnBoletinMySql = async (req, res) => {
     // await sftp.end();
 
     if (fs.existsSync(rutaArchivo)) {
-      // console.log(rutaArchivo);
       return res.sendFile(rutaArchivo);
     } else {
       return res.status(404).json({
